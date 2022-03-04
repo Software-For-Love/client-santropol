@@ -4,6 +4,8 @@ const router = express.Router();
 const firestore = require("firebase/firestore");
 const { getFirestore } = require('firebase/firestore');
 const {doc,setDoc, collection, getDocs} = require('firebase/firestore');
+const { getCollection } = require('../database/getData');
+// const {getCollection} = require('../database/getData')
 
 router.get('/', (req, res, next) => {
     res.json({result: 'OK'});
@@ -55,5 +57,10 @@ router.get('/getUsers', async (req,res)=>{
     }
 
 });
+
+router.get('/Test', async (req, res) => {
+    const db = getFirestore();
+    getCollection(db, "test", null).then(data =>  console.log(datasnapshot.data())).catch(e => console.log("error ",e) );
+})
 
 module.exports = router;
