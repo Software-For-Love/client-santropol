@@ -1,0 +1,20 @@
+{
+  "name": "data-migrate",
+  "version": "1.0.0",
+  "description": "Migrate tool for Santra Poulant to FireStore",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "Daniel Olukiyesi",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.26.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "firebase": "^9.6.7",
+    "firebase-admin": "^10.0.2"
+  }
+}
