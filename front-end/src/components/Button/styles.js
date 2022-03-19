@@ -2,7 +2,10 @@ import styled from "styled-components";
 import { Button } from "antd";
 import theme from "../../Theme";
 
-const getButtonBackgroundColor = (type) => {
+const getButtonBackgroundColor = (type, isActive) => {
+  if (isActive) {
+    return "#fff";
+  }
   switch (type) {
     case "primary":
       return theme.colors.secondary;
@@ -15,7 +18,10 @@ const getButtonBackgroundColor = (type) => {
   }
 };
 
-const getButtonTextColor = (type) => {
+const getButtonTextColor = (type, isActive) => {
+  if (isActive) {
+    return theme.colors.primary;
+  }
   switch (type) {
     case "secondary":
       return theme.colors.primary;
@@ -30,9 +36,11 @@ export default styled(Button)`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${(props) => getButtonBackgroundColor(props.type)};
-  border-color: ${(props) => getButtonBackgroundColor(props.type)};
-  color: ${(props) => getButtonTextColor(props.type)};
+  background-color: ${(props) =>
+    getButtonBackgroundColor(props.type, props.isActive)};
+  border-color: ${(props) =>
+    getButtonBackgroundColor(props.type, props.isActive)};
+  color: ${(props) => getButtonTextColor(props.type, props.isActive)};
   &:hover {
     background-color: #fff;
     color: ${theme.colors.primary};

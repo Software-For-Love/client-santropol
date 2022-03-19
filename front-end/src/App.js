@@ -1,13 +1,8 @@
 import "antd/dist/antd.css";
-import { SideBar, Layout, Header } from "./components/Layout";
+import Routes from "./Routes";
 
 function App() {
-  return (
-    <Layout>
-      <Header />
-      <SideBar />
-    </Layout>
-  );
+  return <Routes />;
 }
 
 export default App;
