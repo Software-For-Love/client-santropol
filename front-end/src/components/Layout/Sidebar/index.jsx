@@ -13,7 +13,7 @@ const SideBarComponent = () => {
   const location = useLocation();
 
   return (
-    <SideBar>
+    <SideBar xs={8} sm={8} md={6} lg={6} xl={5}>
       {routes.map(({ label, path }) => (
         <NavLink
           to={path}
