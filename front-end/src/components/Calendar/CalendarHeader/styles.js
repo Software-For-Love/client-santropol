@@ -2,7 +2,9 @@ import styled from "styled-components";
 import { Row, Typography } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 
-export default styled(Row)``;
+export default styled(Row)`
+  padding-left: 150px;
+`;
 
 export const LeftIcon = styled(LeftOutlined)`
   color: ${(props) => props.theme.colors.primary};

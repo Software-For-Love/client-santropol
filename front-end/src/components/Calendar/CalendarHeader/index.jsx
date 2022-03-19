@@ -17,7 +17,7 @@ const CalendarHeader = (props) => {
   };
 
   return (
-    <Header justify='center' align='middle'>
+    <Header align='middle'>
       <LeftIcon onClick={onLeftIconClick} />
       <DateText>{`${startOfWeek} - ${endOfWeek}`}</DateText>
       <RightIcon onClick={onRightIconClick} />

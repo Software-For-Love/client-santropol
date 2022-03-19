@@ -13,7 +13,7 @@ const CalendarBody = (props) => {
   return (
     <Body justify='space-between'>
       {[...Array(7)].map((_, i) => {
-        const day = startOfWeek.add(i, "days");
+        const day = startOfWeek.clone().add(i, "days");
         return (
           <Col span={3}>
             <Button key={i} type='primary' rounded fullWidth>
