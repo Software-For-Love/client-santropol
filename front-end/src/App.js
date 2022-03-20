@@ -10,7 +10,9 @@ import {
   ClientDeliveryOverlay,
 } from "./components/Modal";
 import NormalLoginForm from "./components/Users/login";
-import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
+import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
+import RegistrationForm from "./components/Users/register";
+import register from "./components/Users/register";
 
 function App() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -22,7 +24,12 @@ function App() {
 
     <div className='App'>
       <header className='App-header'>
-        <NormalLoginForm/>
+        <Router>
+         <Routes>
+            <Route path="/" element={<NormalLoginForm/>}> </Route>
+            <Route path="/register" element={<RegistrationForm/>} > </Route>
+        </Routes>
+        </Router>
         {/*<AssignSlotOverlay*/}
         {/*  visible={modalVisible}*/}
         {/*  setVisible={setModalVisible}*/}

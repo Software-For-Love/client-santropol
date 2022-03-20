@@ -2,7 +2,7 @@ import { Form, Input, Checkbox } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import "antd/dist/antd.css";
 import "../../App.css";
-import {Link} from "react-router-dom";
+import {HashRouter as Router, Route, Routes, Link} from "react-router-dom";
 import logo from "../../santropol.svg";
 import Button from "../Button";
 
@@ -64,7 +64,7 @@ const NormalLoginForm = () => {
       <Form.Item>
         <Button style={{width:'100%'}}>
           Log in
-        </Button>  or  <a href="">register now!</a>
+        </Button>  or <Link to="/register">register now</Link>
       </Form.Item>
     </Form>
   </div>
