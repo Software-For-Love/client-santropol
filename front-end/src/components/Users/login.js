@@ -64,7 +64,7 @@ const NormalLoginForm = () => {
       <Form.Item>
         <Button style={{width:'100%'}}>
           Log in
-        </Button>  or  <a href="">register now!</a>
+        </Button>  or <Link to="/register">register now</Link>
       </Form.Item>
     </Form>
   </div>
