@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SideBar, Layout, Header, Content } from "./components/Layout";
 import Loading from "./components/Loading";
 
@@ -20,6 +20,7 @@ const AppRoutes = () => {
               <Route path='/kitchen-am' element={<KitchenAM />} />
               <Route path='/kitchen-pm' element={<KitchenPM />} />
               <Route path='/delivery' element={<Delivery />} />
+              <Route path='*' element={<Navigate to='/kitchen-am' replace />} />
             </Routes>
           </Suspense>
         </Content>
