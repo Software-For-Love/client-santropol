@@ -1,7 +1,12 @@
 import React from "react";
+import Calendar from "../../components/Calendar";
 
 const KitchenAM = () => {
-  return <div>KitchenAM</div>;
+  return (
+    <div>
+      <Calendar type='admin' />
+    </div>
+  );
 };
 
 export default KitchenAM;

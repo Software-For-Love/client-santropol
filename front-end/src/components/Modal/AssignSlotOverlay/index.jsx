@@ -2,17 +2,16 @@ import PropTypes from "prop-types";
 import { Row } from "antd";
 import Button from "../../Button";
 import Modal, { CommentTextArea } from "../styles";
+import moment from "moment";
 
-const index = ({ visible, setVisible }) => {
+const index = ({ visible, setVisible, date }) => {
   const onClose = () => {
     setVisible(false);
   };
 
   const Footer = () => (
     <Row justify='center'>
-      <Button type='primary' onClick={onClose}>
-        Confirm
-      </Button>
+      <Button onClick={onClose}>Confirm</Button>
     </Row>
   );
 
@@ -30,7 +29,7 @@ const index = ({ visible, setVisible }) => {
     >
       <p>
         <strong>Date: </strong>
-        Monday, January 24
+        {moment(date).format("dddd, MMMM Do")}
       </p>
       <p>
         <strong>Time: </strong>
@@ -48,6 +47,7 @@ const index = ({ visible, setVisible }) => {
 index.propTypes = {
   visible: PropTypes.bool.isRequired,
   setVisible: PropTypes.func.isRequired,
+  date: PropTypes.object.isRequired,
 };
 
 export default index;

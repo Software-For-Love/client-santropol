@@ -3,8 +3,10 @@ import Calendar from "./style";
 import CalendarHeader from "./CalendarHeader";
 import CalendarBody from "./CalendarBody";
 import moment from "moment";
+import PropTypes from "prop-types";
 
-const CalendarComponent = () => {
+const CalendarComponent = (props) => {
+  const { type } = props; // admin | volunteer
   const [date, setDate] = useState(moment());
 
   return (
@@ -18,9 +20,13 @@ const CalendarComponent = () => {
         monthCellRender={() => null}
         monthFullCellRender={() => null}
       />
-      <CalendarBody date={date} />
+      <CalendarBody date={date} type={type} />
     </>
   );
+};
+
+CalendarComponent.propTypes = {
+  type: PropTypes.string.isRequired,
 };
 
 export default CalendarComponent;

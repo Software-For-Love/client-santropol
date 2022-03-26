@@ -6,4 +6,5 @@ export default styled.div`
   height: 52px;
   width: 100%;
   margin-top: 12px;
+  cursor: ${(props) => (props.type === "admin" ? "pointer" : "default")};
 `;
