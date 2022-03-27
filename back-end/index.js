@@ -29,6 +29,6 @@ app.use(cors({origin: '*'}));
 
 app.use('/', indexRouter);
 
-app.listen(port, () => {
+app.listen( (process.env.port || 5000), () => {
     console.log(`Now listening on port ${port}`);
 });
