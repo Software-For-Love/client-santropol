@@ -5,7 +5,7 @@ const { initializeApp, applicationDefault, cert } = require('firebase-admin/app'
 const firebase = require('firebase/app');
 const data = require('./santropolroulant-b4d14-export.json');
 const app = express();
-const port = 5000;
+const port = process.env.port || 5000;
 const indexRouter = require('./routes/routes');
 const cors = require('cors');
 const firebaseConfig = {
@@ -29,6 +29,6 @@ app.use(cors({origin: '*'}));
 
 app.use('/', indexRouter);
 
-app.listen( (process.env.port || 5000), () => {
+app.listen( port, () => {
     console.log(`Now listening on port ${port}`);
 });
