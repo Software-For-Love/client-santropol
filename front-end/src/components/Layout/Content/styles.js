@@ -3,5 +3,6 @@ import { Layout } from "antd";
 const { Content } = Layout;
 
 export default styled(Content)`
-  padding: 1rem;
+  padding-left: 1rem;
+  height: 100%;
 `;

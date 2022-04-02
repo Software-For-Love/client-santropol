@@ -6,9 +6,11 @@ import { Dropdown } from "antd";
 const menu = () => {
   return (
     <Menu openKeys={["profile"]}>
-      <Menu.Item key='profile'>
-        <MenuText>Profile</MenuText>
-      </Menu.Item>
+      <a href='/profile'>
+        <Menu.Item key='profile'>
+          <MenuText>Profile</MenuText>
+        </Menu.Item>
+      </a>
       <Menu.Divider />
       <Menu.Item key='logout'>
         <MenuText>Log Out</MenuText>

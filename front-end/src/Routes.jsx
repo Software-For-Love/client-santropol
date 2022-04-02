@@ -9,6 +9,7 @@ import "./App.css";
 const KitchenAM = lazy(() => import("./pages/KitchenAM"));
 const KitchenPM = lazy(() => import("./pages/KitchenPM"));
 const Delivery = lazy(() => import("./pages/Delivery"));
+const Profile = lazy(() => import("./pages/Profile"));
 const NormalLoginForm = lazy(() => import("./components/Users/login"));
 const RegistrationForm = lazy(() => import("./components/Users/register"));
 
@@ -27,6 +28,7 @@ const AppRoutes = () => {
                 <Route path='/kitchen-am' element={<KitchenAM />} />
                 <Route path='/kitchen-pm' element={<KitchenPM />} />
                 <Route path='/delivery' element={<Delivery />} />
+                <Route path='/profile' element={<Profile />} />
                 <Route
                   path='*'
                   element={<Navigate to='/kitchen-am' replace />}

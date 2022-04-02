@@ -7,7 +7,7 @@ import { Col } from "antd";
 import CalendarCell from "../CalendarCell";
 
 const CalendarBody = (props) => {
-  const { date, type } = props;
+  const { date, type, info, variant } = props;
   const startOfWeek = moment(date).startOf("week");
   const [numberOfCells, setNumberOfCells] = useState([3, 3, 3, 3, 3, 3, 3]);
 
@@ -21,14 +21,18 @@ const CalendarBody = (props) => {
     <Body justify='space-between'>
       {[...Array(7)].map((_, i) => {
         const day = startOfWeek.clone().add(i, "days");
-        console.log(numberOfCells[i]);
         return (
           <Col span={3}>
             <Button key={i} type='primary' rounded fullWidth>
               {day.format("Do MMM")}
             </Button>
             {[...Array(numberOfCells[i])].map((_, j) => (
-              <CalendarCell type={type} date={day} />
+              <CalendarCell
+                type={type}
+                date={day}
+                volunteerInfo={info[j]}
+                variant={variant}
+              />
             ))}
             {type === "admin" && (
               <PlusIcon onClick={() => plusIconClickHandler(i)} />
@@ -43,6 +47,8 @@ const CalendarBody = (props) => {
 CalendarBody.propTypes = {
   date: PropTypes.object.isRequired,
   type: PropTypes.string.isRequired,
+  info: PropTypes.array,
+  variant: PropTypes.string,
 };
 
 export default CalendarBody;
