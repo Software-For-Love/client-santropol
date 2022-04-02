@@ -43,6 +43,7 @@ const AppRoutes = () => {
             <Routes>
               <Route path='/' element={<NormalLoginForm />} />
               <Route path='/register' element={<RegistrationForm />} />
+              <Route path='*' element={<Navigate to='/' replace />} />
             </Routes>
           </Suspense>
         </Row>
