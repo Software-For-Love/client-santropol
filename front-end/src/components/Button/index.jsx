@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 
 const index = (props) => {
   const { children } = props;
+  //type : primary | secondary | tertiary
   return (
     <Button {...props} onMouseDown={(e) => e.preventDefault()}>
       {children}
@@ -17,6 +18,8 @@ index.propTypes = {
   children: PropTypes.any,
   size: PropTypes.string,
   onClick: PropTypes.func,
+  fullWidth: PropTypes.bool,
+  isActive: PropTypes.bool,
 };
 
 export default index;
