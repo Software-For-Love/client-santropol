@@ -13,7 +13,7 @@ const NormalLoginForm = lazy(() => import("./components/Users/login"));
 const RegistrationForm = lazy(() => import("./components/Users/register"));
 
 const AppRoutes = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   return (
     <BrowserRouter>
@@ -27,8 +27,6 @@ const AppRoutes = () => {
                 <Route path='/kitchen-am' element={<KitchenAM />} />
                 <Route path='/kitchen-pm' element={<KitchenPM />} />
                 <Route path='/delivery' element={<Delivery />} />
-                <Route path='/' element={<NormalLoginForm />} />
-                <Route path='/register' element={<RegistrationForm />} />
                 <Route
                   path='*'
                   element={<Navigate to='/kitchen-am' replace />}
