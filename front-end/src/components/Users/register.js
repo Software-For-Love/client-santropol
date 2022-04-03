@@ -4,12 +4,23 @@ import "antd/dist/antd.css";
 import "../../App.css";
 import logo from "../../santropol.svg";
 import Button from "../Button";
+import { backendServer } from '../../environment';
 import {Checkbox, Form, Input} from "antd";
 import {LockOutlined, UserOutlined} from "@ant-design/icons";
+import Password from 'antd/lib/input/Password';
 
 const RegistrationForm = () => {
   const onFinish = (values) => {
     console.log('Received values of form: ', values);
+    fetch(`${backendServer}/auth/register?username=${values.username}&password=${values.password}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }).then(response => response.json())
+    .then(data => console.log(data));
+
   };
 
   return (
@@ -75,7 +86,7 @@ const RegistrationForm = () => {
       <Input.Password />
     </Form.Item>
       <Form.Item>
-        <Button style={{width:'100%'}}>
+        <Button style={{width:'100%'}}  htmlType="submit">
           Register
         </Button>
         <Link to="/" style={{float:'right'}}>Back to Login</Link>

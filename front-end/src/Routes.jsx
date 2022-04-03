@@ -13,7 +13,7 @@ const NormalLoginForm = lazy(() => import("./components/Users/login"));
 const RegistrationForm = lazy(() => import("./components/Users/register"));
 
 const AppRoutes = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
     <BrowserRouter>
