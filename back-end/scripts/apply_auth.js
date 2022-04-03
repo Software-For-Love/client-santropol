@@ -3,9 +3,9 @@
  const { getAuth } = require('firebase-admin/auth');
 const path = require('path');
 const fs = require('fs')
-const { parse } = require('csv-parse')
+const { parse } = require('csv-parse');
 
-// Set admin privilege on the user corresponding to uid.
+
 const inputPath = path.join(__dirname, "../export_users/old_users.csv");
 const adminConfig = {
   type: process.env.ADMIN_ACC_TYPE,
@@ -23,71 +23,58 @@ const cred = cert(adminConfig);
 const app = initializeApp({
   credential: cred
 });
-// const user = getAuth().set("floriane@santropolroulant.org").then(val => console.log(val)).catch(err => console.log(err))
-// .setCustomUserClaims('18UphyVWxZXb5E0U8vBGAmjUuDp2', { staff: true })
-//   .then(() => {
-//     console.log("sucess");
-//   })
-//   .catch(err=> console.log(err));
+counter = 0;
+userData = null;
+
 function handleData(data){
-  // console.log(data)
-   parse(data, {columns: false, trim: true}, function(err, rows) {  //THIS IS BROKEN???
-    // Your CSV data is in an array of arrys passed to this callback as rows.
-    // console.log(JSON.parse());
-    console.log(rows)
-    let roleIndex = rows[1].length -1 ;
-    for(var i=0; i < rows.length; i++){
-      let currRole = (rows[i][roleIndex]);
-      if(!currRole){
-        // getAuth()
-        // .setCustomUserClaims(rows[i][0], {role : volunteer })
-        // .then(() => {
-        //   // The new custom claims will propagate to the user's ID token the
-        //   // next time a new one is issued.
-        // });
-        console.log(currRole + "this is undefined person" + rows[i][1])
-
+    parse(data, {columns: false, trim: true,relax:true, relax_quotes: true}, function(err, rows) {  
+    userData = rows[counter];
+    let timeValue = setInterval(function(){
+      applyRole(userData)
+      counter++;
+      console.log("here?" + counter)
+      if(counter == rows.length){
+        clearInterval(timeValue);
+      } else {
+        userData = rows[counter];
       }
-      else {
-        console.log(JSON.parse(currRole))
-      }
+    },
+      250 //Need to have interval because Firebase has limit on number of auth requests
+      
+    )
 
-    }
-    
   })
 }
-async function applyRole(){
+
+
+async function readCsv(){
   const data = await fs.promises.readFile(inputPath, 'utf8' );
   return data;
 
 }
 
-applyRole().then(val => {
-  handleData(val)}).catch(err => console.log);
-//  fs.readFile(inputPath,  function (err, fileData) {
-  // parse(fileData, {columns: false, trim: true}, function(err, rows) {
-  //   // Your CSV data is in an array of arrys passed to this callback as rows.
-  //   // console.log(JSON.parse());
-  //   console.log(rows)
-  //   let roleIndex = rows[1].length -1 ;
-  //   for(var i=0; i < rows.length; i++){
-  //     let currRole = (rows[i][roleIndex]);
-  //     if(!currRole){
-  //       // getAuth()
-  //       // .setCustomUserClaims(rows[i][0], {role : volunteer })
-  //       // .then(() => {
-  //       //   // The new custom claims will propagate to the user's ID token the
-  //       //   // next time a new one is issued.
-  //       // });
-  //       console.log(currRole + "this is undefined person" + rows[i][1])
-
-  //     }
-  //     else {
-  //       console.log(JSON.parse(currRole))
-  //     }
-
-  //   }
+function applyRole(userInfo){
+    let currRole = userInfo[userInfo.length-2]
+    let userId  = userInfo[0];
+    if(!currRole){
+    getAuth()
+    .setCustomUserClaims(userId, {role : "volunteer" })
+    .then(() => {
+    }).catch(err => console.log(err)) ;
+  }
+  else {
+    let role = JSON.parse(currRole);
+    getAuth()
+    .setCustomUserClaims(userId, role)
+    .then(() => {
+    }).catch(err => console.log(err)) ;
+  }
     
-  // })
-// })
+
+}
+
+
+readCsv().then(val => {
+  handleData(val)
+}).catch(err => console.log(err));
 
