@@ -1,8 +1,9 @@
-import React, { lazy, Suspense, useState } from "react";
+import React, { lazy, Suspense, useContext } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SideBar, Layout, Header, Content } from "./components/Layout";
 import Loading from "./components/Loading";
 import { Row } from "antd";
+import { AuthContext } from "./Contexts/AuthContext";
 import "./App.css";
 
 // Pages
@@ -14,7 +15,7 @@ const NormalLoginForm = lazy(() => import("./components/Users/login"));
 const RegistrationForm = lazy(() => import("./components/Users/register"));
 
 const AppRoutes = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const { isLoggedIn } = useContext(AuthContext);
 
   return (
     <BrowserRouter>
