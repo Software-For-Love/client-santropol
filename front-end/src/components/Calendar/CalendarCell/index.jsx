@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Cell, { Icon } from "./styles";
+import Cell, { Icon, DeleteButton } from "./styles";
 import PropTypes from "prop-types";
 import AssignSlotOverlay from "../../Modal/AssignSlotOverlay";
 import { Typography, Tooltip } from "antd";
@@ -8,6 +8,7 @@ import CarIcon from "../../../assets/car.svg";
 import BicycleIcon from "../../../assets/bicycle.svg";
 import OnFootIcon from "../../../assets/on-foot.svg";
 import DeliveryOverlay from "../../Modal/DeliveryOverlay";
+import DeleteIcon from "../../../assets/close.svg";
 
 const DELIVERY_ICONS = {
   "Own Car": CarIcon,
@@ -45,6 +46,9 @@ const CalendarCell = (props) => {
   return (
     <>
       <Cell onClick={onClickHandler} type={type}>
+        {type === "admin" && volunteerInfo && (
+          <DeleteButton src={DeleteIcon} alt='delete shift' />
+        )}
         {volunteerInfo && (
           <>
             {volunteerInfo.missedShifts && type === "admin" && (
