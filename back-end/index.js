@@ -3,7 +3,6 @@ require('dotenv').config()
 const express = require('express');
 const { initializeApp, applicationDefault, cert } = require('firebase-admin/app');
 const firebase = require('firebase/app');
-const data = require('./santropolroulant-b4d14-export.json');
 const app = express();
 const port = process.env.PORT || 5000;
 const indexRouter = require('./routes/routes');
