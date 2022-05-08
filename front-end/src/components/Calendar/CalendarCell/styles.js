@@ -11,10 +11,17 @@ export default styled.div`
   width: 100%;
   margin-top: 12px;
   cursor: ${(props) => (props.type === "admin" ? "pointer" : "default")};
+  position: relative;
 `;
 
 export const Icon = styled.img`
   width: 1.5rem;
   height: 1.5rem;
   margin-right: 5px;
+`;
+
+export const DeleteButton = styled.img`
+  position: absolute;
+  top: 10px;
+  right: 10px;
 `;
