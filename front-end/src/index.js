@@ -9,6 +9,7 @@ import { ConfigProvider } from "antd";
 import en_GB from "antd/lib/locale-provider/en_GB";
 import moment from "moment";
 import "moment/locale/en-gb"; // important!
+import { AuthProvider } from "./Contexts/AuthContext";
 
 moment.locale("en-gb");
 
@@ -16,7 +17,9 @@ ReactDOM.render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <ConfigProvider locale={en_GB}>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </ConfigProvider>
     </ThemeProvider>
   </React.StrictMode>,

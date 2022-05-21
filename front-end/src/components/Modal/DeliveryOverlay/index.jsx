@@ -4,9 +4,10 @@ import { Row, Radio } from "antd";
 import Button from "../../Button";
 import Modal, { CommentTextArea } from "../styles";
 import { DELIVERY_TYPES } from "../../../constants";
+import moment from "moment";
 
-const DeliveryModal = ({ visible, setVisible }) => {
-  const [value, setValue] = useState("Foot");
+const DeliveryModal = ({ visible, setVisible, type, date }) => {
+  const [value, setValue] = useState(type || "Foot");
 
   const onTypeOfDeliveryChange = (e) => {
     setValue(e.target.value);
@@ -38,7 +39,7 @@ const DeliveryModal = ({ visible, setVisible }) => {
     >
       <p>
         <strong>Date: </strong>
-        Tuesday, January 25
+        {moment(date).format("dddd, MMMM Do")}
       </p>
       <p>
         <strong>Time: </strong>
@@ -73,6 +74,8 @@ const DeliveryModal = ({ visible, setVisible }) => {
 DeliveryModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   setVisible: PropTypes.func.isRequired,
+  date: PropTypes.object.isRequired,
+  type: PropTypes.string.isRequired,
 };
 
 export default DeliveryModal;

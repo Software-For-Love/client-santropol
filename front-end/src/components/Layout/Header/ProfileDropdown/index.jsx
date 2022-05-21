@@ -1,16 +1,20 @@
-import React from "react";
+import React, { useContext } from "react";
 import Button from "../../../Button";
 import Menu, { MenuText } from "./styles";
 import { Dropdown } from "antd";
+import { AuthContext } from "../../../../Contexts/AuthContext";
 
-const menu = () => {
+const MenuComponent = () => {
+  const { logout } = useContext(AuthContext);
   return (
     <Menu openKeys={["profile"]}>
-      <Menu.Item key='profile'>
-        <MenuText>Profile</MenuText>
-      </Menu.Item>
+      <a href='/profile'>
+        <Menu.Item key='profile'>
+          <MenuText>Profile</MenuText>
+        </Menu.Item>
+      </a>
       <Menu.Divider />
-      <Menu.Item key='logout'>
+      <Menu.Item key='logout' onClick={logout}>
         <MenuText>Log Out</MenuText>
       </Menu.Item>
     </Menu>
@@ -19,7 +23,7 @@ const menu = () => {
 
 const ProfileDropdown = () => {
   return (
-    <Dropdown overlay={menu}>
+    <Dropdown overlay={<MenuComponent />}>
       <Button type='primary' rounded>
         Jenny T.
       </Button>

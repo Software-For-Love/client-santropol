@@ -6,7 +6,7 @@ import ProfileDropdown from "./ProfileDropdown";
 
 const HeaderComponent = () => {
   return (
-    <Col span={24}>
+    <Col span={24} style={{ marginBottom: "1rem" }}>
       <Header>
         <Row>
           <LogoContainer>

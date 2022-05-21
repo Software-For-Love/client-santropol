@@ -10,6 +10,10 @@ export const LogoContainer = styled(Col).attrs(() => ({
 }))`
   display: flex;
   justify-content: center;
+  img {
+    max-width: 150px;
+    height: auto;
+  }
 `;
 
 export const ProfileContainer = styled(Col).attrs(() => ({ span: 8 }))`

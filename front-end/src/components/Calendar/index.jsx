@@ -6,7 +6,7 @@ import moment from "moment";
 import PropTypes from "prop-types";
 
 const CalendarComponent = (props) => {
-  const { type } = props; // admin | volunteer
+  const { type, info, variant } = props; // type: admin | volunteer, info: volunteer info array
   const [date, setDate] = useState(moment());
 
   return (
@@ -20,13 +20,15 @@ const CalendarComponent = (props) => {
         monthCellRender={() => null}
         monthFullCellRender={() => null}
       />
-      <CalendarBody date={date} type={type} />
+      <CalendarBody date={date} type={type} info={info} variant={variant} />
     </>
   );
 };
 
 CalendarComponent.propTypes = {
   type: PropTypes.string.isRequired,
+  info: PropTypes.array,
+  variant: PropTypes.string,
 };
 
 export default CalendarComponent;
