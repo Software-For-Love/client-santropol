@@ -7,11 +7,14 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../santropol.svg";
 import Button from "../Button";
 import AxiosInstance from "../../API/api";
+import { ResetPasswordModal } from "../Modal";
 
 const NormalLoginForm = () => {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [resetPasswordModalVisible, setResetPasswordModalVisible] =
+    useState(false);
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -39,6 +42,10 @@ const NormalLoginForm = () => {
 
   return (
     <div className='form'>
+      <ResetPasswordModal
+        visible={resetPasswordModalVisible}
+        setVisible={setResetPasswordModalVisible}
+      />
       <img src={logo} className='App-logo' alt='logo' />
       <p>Login</p>
       <Form
@@ -87,6 +94,7 @@ const NormalLoginForm = () => {
             style={{ float: "right" }}
             className='login-form-forgot'
             type='link'
+            onClick={() => setResetPasswordModalVisible(true)}
           >
             Forgot password
           </AntdButton>
