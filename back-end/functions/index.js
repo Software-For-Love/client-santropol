@@ -1,15 +1,17 @@
+/* eslint-disable */
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const fs = require("fs");
+const path = require("path");
+admin.initializeApp();
 
-admin.initializeApp(functions.config().firebase);
 
-/* eslint-disable */
 
 /**
  * Cloud function used to delete shifts that have passed and generate future shifts. To run every Sunday at 9:00 AM.
  */
-exports.scheduledShiftGenerator = functions.pubsub.schedule("00 9 * * sun").timeZone("America/New_York").onRun((context) => {
-
+// exports.createEvent = functions.https.onRequest((req,)=> {
+exports.scheduledShiftGenerator = functions.pubsub.schedule("11 6 * * *").timeZone("America/New_York").onRun((context) =>{
   let incrementInMilliseconds = 24 * 60 * 60 * 1000; //Full day in miliseconds
   let firstDate = new Date();
   firstDate.setTime(firstDate.getTime() + incrementInMilliseconds); //monday
@@ -20,38 +22,40 @@ exports.scheduledShiftGenerator = functions.pubsub.schedule("00 9 * * sun").time
   
   console.log('creating...');
   printStrings(firstDate).then(() => {
-    admin.database().ref('/event').on("child_added", function (snapshot) {
-      if (snapshot.val().event_date < firstDateNumber) { //it's the same date and type
-        if (snapshot.val().key != "nan"){
-          var eventNameRef = admin.database().ref('/past_events/' + snapshot.key);
-          let late = false;
-          if(snapshot.val().is_late){
-            late = true;
-          }
-          eventNameRef.set({
-            event_date: snapshot.val().event_date,
-            event_date_txt: snapshot.val().event_date_txt,
-            event_time_end: snapshot.val().event_time_end,
-            event_time_start: snapshot.val().event_time_start,
-            event_type: snapshot.val().event_type,
-            first_name: snapshot.val().first_name,
-            first_shift: snapshot.val().first_shift,
-            is_current: false,
-            is_important_event: snapshot.val().is_important_event,
-            is_late: late,
-            key: snapshot.val().key,
-            last_name: snapshot.val().last_name,
-            note: snapshot.val().note,
-            slot: snapshot.val().slot,
-            uid: snapshot.val().uid
-          });
-        }
-        console.log("Deleted: " + snapshot.key);
-        snapshot.ref.remove();
-      }
-      return 0;
-    });
-    console.log('deleting...');
+    
+    // admin.firestore().collection("event").
+    // admin.database().ref('/event').on("child_added", function (snapshot) {
+    //   if (snapshot.val().event_date < firstDateNumber) { //it's the same date and type
+    //     if (snapshot.val().key != "nan"){
+    //       var eventNameRef = admin.database().ref('/past_events/' + snapshot.key);
+    //       let late = false;
+    //       if(snapshot.val().is_late){
+    //         late = true;
+    //       }
+    //       eventNameRef.set({
+    //         event_date: snapshot.val().event_date,
+    //         event_date_txt: snapshot.val().event_date_txt,
+    //         event_time_end: snapshot.val().event_time_end,
+    //         event_time_start: snapshot.val().event_time_start,
+    //         event_type: snapshot.val().event_type,
+    //         first_name: snapshot.val().first_name,
+    //         first_shift: snapshot.val().first_shift,
+    //         is_current: false,
+    //         is_important_event: snapshot.val().is_important_event,
+    //         is_late: late,
+    //         key: snapshot.val().key,
+    //         last_name: snapshot.val().last_name,
+    //         note: snapshot.val().note,
+    //         slot: snapshot.val().slot,
+    //         uid: snapshot.val().uid
+    //       });
+    //     }
+    //     console.log("Deleted: " + snapshot.key);
+    //     snapshot.ref.remove();
+    //   }
+    //   return 0;
+    // });
+    // console.log('deleting...');
   });
 });
 
@@ -62,62 +66,84 @@ function printStrings(date) {
   var endTimes = ['18:00', '18:00', '12:30', '16:00'];
   var startTimesSat = ['14:15', '14:15', '9:00', '13:00'];
   var endTimesSat = ['17:30', '17:30', '12:00', '15:30'];
+  var modelPath = path.resolve(__dirname, "..", "models", "event.json")
+  var eventModel = JSON.parse(fs.readFileSync(modelPath));
+
   for (let weekdayNo = 0; weekdayNo < 6; weekdayNo++) { //for each weekday
-    if (weekdayNo == 3) { //thursday
-      let incrementInMilliseconds = weekdayNo * 24 * 60 * 60 * 1000;
-      let date2 = new Date(date.toDateString());
-      date2.setTime(date.getTime() + incrementInMilliseconds);
-      let dateNumber = getDateNumber(date2);
-      let dateString = getDateString(date2);
-      for (let j = 0; j < slotAmount[3]; j++) { //for each slot
-        console.log("Created" + dateNumber + 'kitpm' + pad(j + 1, 2));
-        var eventNameRef = admin.database().ref('/event/' + dateNumber + 'kitpm' + pad(j + 1, 2));
-        eventNameRef.set({
-          event_date: dateNumber,
-          event_date_txt: dateString,
-          event_time_end: endTimes[3],
-          event_time_start: startTimes[3],
-          event_type: 'kitpm',
-          first_name: '',
-          first_shift: false,
-          is_current: true,
-          is_important_event: false,
-          key: 'nan',
-          last_name: '',
-          note: '',
-          slot: pad(j + 1, 2),
-          uid: 'nan'
-        });
-      }
-    }
-    else {
+    // if (weekdayNo == 3) { //thursday
+    //   let incrementInMilliseconds = weekdayNo * 24 * 60 * 60 * 1000;
+    //   let date2 = new Date(date.toDateString());
+    //   date2.setTime(date.getTime() + incrementInMilliseconds);
+    //   let dateNumber = getDateNumber(date2);
+    //   let dateString = getDateString(date2);
+    //   for (let j = 0; j < slotAmount[3]; j++) { //for each slot
+    //     console.log("Created" + dateNumber + 'kitpm' + pad(j + 1, 2));
+    //     var eventNameRef = admin.database().ref('/event/' + dateNumber + 'kitpm' + pad(j + 1, 2));
+    //     eventNameRef.set({
+    //       event_date: dateNumber,
+    //       event_date_txt: dateString,
+    //       event_time_end: endTimes[3],
+    //       event_time_start: startTimes[3],
+    //       event_type: 'kitpm',
+    //       first_name: '',
+    //       first_shift: false,
+    //       is_current: true,
+    //       is_important_event: false,
+    //       key: 'nan',
+    //       last_name: '',
+    //       note: '',
+    //       slot: pad(j + 1, 2),
+    //       uid: 'nan'
+    //     });
+    //   }
+    // }
+    // else {
       for (let i = 0; i < types.length; i++) { //for each type
-        let incrementInMilliseconds = weekdayNo * 24 * 60 * 60 * 1000;
+        let incrementInMilliseconds = weekdayNo * 24 * 60 * 60 * 1000; //The next day
         let date2 = new Date(date.toDateString());
         date2.setTime(date.getTime() + incrementInMilliseconds);
         let dateNumber = getDateNumber(date2);
         let dateString = getDateString(date2);
         for (let j = 0; j < slotAmount[i]; j++) { //for each slot
           console.log("Created" + dateNumber + types[i] + pad(j + 1, 2));
-          var eventNameRef = admin.database().ref('/event/' + dateNumber + types[i] + pad(j + 1, 2));
-          eventNameRef.set({
-            event_date: dateNumber,
-            event_date_txt: dateString,
-            event_time_end: endTimes[i],
-            event_time_start: startTimes[i],
-            event_type: types[i],
-            first_name: '',
-            first_shift: false,
-            is_current: true,
-            is_important_event: false,
-            key: 'nan',
-            last_name: '',
-            note: '',
-            slot: pad(j + 1, 2),
-            uid: 'nan'
-          });
+          eventModel["event_date"] = dateNumber;
+          eventModel["event_date_txt"] = dateString;
+          eventModel["event_time_end"] = endTimes[i];
+          eventModel["event_time_start"] = startTimes[i];
+          eventModel["event_type"] = types[i];
+          eventModel["first_name"] = "";
+          eventModel["first_shift"] = false;
+          eventModel["is_current"] = true;
+          eventModel["is_important_event"] = false;
+          eventModel["key"] = "nan";
+          eventModel["last_name"] = "";
+          eventModel["note"] = "";
+          eventModel["slot"] = pad(j + 1, 2);
+          eventModel["uid"] = "nan";
+
+          let eventNameRef = admin.firestore().collection("event_test").doc( dateNumber + types[i] + pad(j + 1, 2))          
+          .set(eventModel);
+
+          //This is a promise
+          // var eventNameRef = admin.database().ref('/event/' + dateNumber + types[i] + pad(j + 1, 2));
+          // eventNameRef.set({
+          //   event_date: dateNumber,
+          //   event_date_txt: dateString,
+          //   event_time_end: endTimes[i],
+          //   event_time_start: startTimes[i],
+          //   event_type: types[i],
+          //   first_name: '',
+          //   first_shift: false,
+          //   is_current: true,
+          //   is_important_event: false,
+          //   key: 'nan',
+          //   last_name: '',
+          //   note: '',
+          //   slot: pad(j + 1, 2),
+          //   uid: 'nan'
+          // });
         }
-      }
+      // }
     }
   }
   return new Promise(resolve => {
