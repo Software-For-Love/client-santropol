@@ -14,6 +14,7 @@ const index = (props) => {
 index.propTypes = {
   type: PropTypes.string,
   rounded: PropTypes.bool,
+  loading: PropTypes.bool,
   rest: PropTypes.element,
   children: PropTypes.any,
   size: PropTypes.string,

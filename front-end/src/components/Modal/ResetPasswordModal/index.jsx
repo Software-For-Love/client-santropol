@@ -15,10 +15,11 @@ const ResetPasswordModal = ({ visible, setVisible }) => {
       if (data.result) {
         message.success(data.result);
       } else {
-        message.error(data.error);
+        const errorMessage =
+          data.error === "auth/user-not-found" ? "User not found." : data.error;
+        message.error(errorMessage);
       }
     } catch (error) {
-      console.log(error);
       message.error(error);
     }
     setLoading(false);
