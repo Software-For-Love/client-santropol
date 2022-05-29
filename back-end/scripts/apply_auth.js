@@ -1,4 +1,4 @@
- require("dotenv").config({path: '../.env.development.local/dev.env'});
+ require("dotenv").config({path: '../.env'});
  const { initializeApp ,cert} = require('firebase-admin/app');
  const { getAuth } = require('firebase-admin/auth');
 const path = require('path');
