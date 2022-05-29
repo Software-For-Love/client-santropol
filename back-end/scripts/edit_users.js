@@ -18,13 +18,14 @@ let app = initializeApp({
   credential: cert(adminConfig)
 });
 
+//Won't use this, but maybe down the line. However, can just query for events for each user depending on status
 const db = getFirestore()
 const list = db.collection("user").listDocuments().then(
   listofDocs =>{
     listofDocs.forEach(val => {
       db.collection("user").doc(val.id).update({
-        cancelled_events: [],
-        completed_events: []
+        cancelled_events: null,
+        completed_events: null
       })
     })
   }
