@@ -66,7 +66,7 @@ function printStrings(date) {
   var endTimes = ['18:00', '18:00', '12:30', '16:00'];
   var startTimesSat = ['14:15', '14:15', '9:00', '13:00'];
   var endTimesSat = ['17:30', '17:30', '12:00', '15:30'];
-  var modelPath = path.resolve(__dirname, "..", "models", "event.json")
+  var modelPath = path.resolve(".", "event.json")
   var eventModel = JSON.parse(fs.readFileSync(modelPath));
 
   for (let weekdayNo = 0; weekdayNo < 6; weekdayNo++) { //for each weekday
