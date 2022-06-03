@@ -14,14 +14,14 @@ export default styled.div`
   position: relative;
 `;
 
-export const DeleteButton = styled.img`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-`;
-
 export const Icon = styled.img`
   width: 1.5rem;
   height: 1.5rem;
   margin-right: 5px;
+`;
+
+export const DeleteButton = styled.img`
+  position: absolute;
+  top: 10px;
+  right: 10px;
 `;

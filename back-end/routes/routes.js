@@ -1,6 +1,5 @@
 require('dotenv').config()
 const express = require('express');
-const data = require('../santropolroulant-b4d14-export.json')
 const router = express.Router();
 const firestore = require("firebase/firestore");
 const { getFirestore, getDoc } = require('firebase/firestore');
@@ -15,31 +14,7 @@ router.get('/', (req, res, next) => {
     res.json({result: 'OK'});
   });
 
-router.get('/migrateDB',async (req,res)=>{
-    try{
-        const db = getFirestore();
-        const result = data.bug[1];
-        Object.keys(data).forEach( root => {
-           
-            Object.keys(data[root]).forEach(async (element) =>{
-                    console.log(root);
-                    console.log(element);
-                    console.log(data[root][element]);
-                    const obj = data[root][element];
-                    //DO NOT USE THIS CODE
-                    // await setDoc(doc(db,root,element),obj);
-                    // db.collection(root).doc(element).(map);
-                });
-        
-            });
-        
-    }
-    catch(e){
-        console.error("Error adding document: ", e);
-    }
-    res.json({bug: data.bug[1]})
-
-});  
+  
 
 router.get('/getUsers', async (req,res)=>{
     try{

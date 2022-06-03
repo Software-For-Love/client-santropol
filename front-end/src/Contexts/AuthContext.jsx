@@ -7,12 +7,17 @@ const AuthContext = createContext();
 
 const AuthProvider = (props) => {
   const auth = getAuth(firebaseApp);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [userDataLoading, setUserDataLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+
+  console.log(user);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      setIsLoggedIn(!!user);
+      setUserDataLoading(false);
     });
 
     return () => {
@@ -26,7 +31,7 @@ const AuthProvider = (props) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, logout, user }}>
+    <AuthContext.Provider value={{ isLoggedIn, logout, user, userDataLoading }}>
       {props.children}
     </AuthContext.Provider>
   );

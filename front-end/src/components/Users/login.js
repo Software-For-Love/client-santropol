@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Input, Checkbox, message } from "antd";
+import { Form, Input, Checkbox, message, Button as AntdButton } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import "antd/dist/antd.css";
 import "../../App.css";
@@ -30,20 +30,20 @@ const NormalLoginForm = () => {
   };
 
   return (
-    <div className='form'>
-      <img src={logo} className='App-logo' alt='logo' />
+    <div className="form">
+      <img src={logo} className="App-logo" alt="logo" />
       <p>Login</p>
       <Form
-        name='normal_login'
-        className='login-form'
+        name="normal_login"
+        className="login-form"
         initialValues={{
           remember: true,
         }}
         onFinish={onFinish}
       >
         <Form.Item
-          className='userbox'
-          name='email'
+          className="userbox"
+          name="email"
           rules={[
             {
               required: true,
@@ -52,12 +52,12 @@ const NormalLoginForm = () => {
           ]}
         >
           <Input
-            prefix={<UserOutlined className='site-form-item-icon' />}
-            placeholder='Username'
+            prefix={<UserOutlined className="site-form-item-icon" />}
+            placeholder="Username"
           />
         </Form.Item>
         <Form.Item
-          name='password'
+          name="password"
           rules={[
             {
               required: true,
@@ -66,25 +66,29 @@ const NormalLoginForm = () => {
           ]}
         >
           <Input
-            prefix={<LockOutlined className='site-form-item-icon' />}
-            type='password'
-            placeholder='Password'
+            prefix={<LockOutlined className="site-form-item-icon" />}
+            type="password"
+            placeholder="Password"
           />
         </Form.Item>
         <Form.Item>
-          <Form.Item name='remember' valuePropName='checked' noStyle>
+          <Form.Item name="remember" valuePropName="checked" noStyle>
             <Checkbox style={{ float: "left" }}>Remember me</Checkbox>
           </Form.Item>
-          <a style={{ float: "right" }} className='login-form-forgot' href=''>
+          <AntdButton
+            style={{ float: "right" }}
+            className="login-form-forgot"
+            type="link"
+          >
             Forgot password
-          </a>
+          </AntdButton>
         </Form.Item>
 
         <Form.Item>
-          <Button style={{ width: "100%" }} htmlType='submit' loading={loading}>
+          <Button style={{ width: "100%" }} htmlType="submit" loading={loading}>
             Log in
           </Button>{" "}
-          or <Link to='/register'>register now</Link>
+          or <Link to="/register">register now</Link>
         </Form.Item>
       </Form>
     </div>
