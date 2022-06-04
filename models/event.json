@@ -12,5 +12,6 @@
     "last_name": "",
     "note": "",
     "slot": "",
-    "uid": ""
+    "uid": "",
+    "no_show": false
 }
