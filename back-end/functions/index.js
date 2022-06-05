@@ -3,32 +3,19 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const fs = require("fs");
 const path = require("path");
+const { Event } = require("./event");
+const { DeliveryEvent } = require("./deliveryEvent")  ;
 const { rejects } = require("assert");
 admin.initializeApp();
 
 const firestoreService=admin.firestore();
-const eventsCollection = firestoreService.collection("events");
-const recurEventCollection = firestoreService.collection("recurring_events");
-const modelPath = path.resolve(".", "event.json");
-const eventModel = JSON.parse(fs.readFileSync(modelPath));
+const eventsRef = firestoreService.collection("events");
+const recurEventRef = firestoreService.collection("recurring_events");
+// const modelPath = path.resolve(".", "event.json");
+// const eventModel = JSON.parse(fs.readFileSync(modelPath));
 
 
-/**
- * Cloud function used to delete shifts that have passed and generate future shifts. To run every Sunday at 9:00 AM.
- */
-exports.createEvent = functions.https.onRequest((req,res)=> {
-// exports.scheduledShiftGenerator = functions.pubsub.schedule("11 6 * * *").timeZone("America/New_York").onRun((context) =>{
-  let incrementInMilliseconds = 24 * 60 * 60 * 1000; //Full day in miliseconds
-  // let firstDate = new Date();
-  // firstDate.setTime(firstDate.getTime() + incrementInMilliseconds); //monday
-  // let firstDateNumber = getDateNumber(firstDate);
-  
-  // incrementInMilliseconds = 24 * 60 * 60 * 1000 * 7 * 12; //12 weeks
-  // firstDate.setTime(firstDate.getTime()+incrementInMilliseconds);
-  let futureStartDate = new Date("June 12, 2022");
-  console.log('creating...');
-  //TEST PORTION WITH DATA
-
+exports.sampleCreation = functions.https.onRequest((req, res) => {
   firestoreService.collection("events").add({
     event_date: 220614,
     event_type: "deldr",
@@ -43,9 +30,23 @@ exports.createEvent = functions.https.onRequest((req,res)=> {
       int_day_of_week: 2,
       first_name: "ksha"
     })
-  }).then(()=> {
-    fillRecurringEvents(futureStartDate);
   })
+})
+/**
+ * Cloud function used to delete shifts that have passed and generate future shifts. To run every Sunday at 9:00 AM.
+ */
+exports.createEvent = functions.https.onRequest((req,res)=> {
+// exports.scheduledShiftGenerator = functions.pubsub.schedule("11 6 * * *").timeZone("America/New_York").onRun((context) =>{
+  let incrementInMilliseconds = 24 * 60 * 60 * 1000; //Full day in miliseconds
+  // let firstDate = new Date();
+  // firstDate.setTime(firstDate.getTime() + incrementInMilliseconds); //monday
+  // let firstDateNumber = getDateNumber(firstDate);
+  
+  // incrementInMilliseconds = 24 * 60 * 60 * 1000 * 7 * 12; //12 weeks
+  // firstDate.setTime(firstDate.getTime()+incrementInMilliseconds);
+  let futureStartDate = new Date("June 12, 2022");
+  console.log('creating...');
+  fillRecurringEvents(futureStartDate);
 
   // printStrings(firstDate).then(() => {
 
@@ -123,7 +124,7 @@ function printStrings(date) {
     //   }
     // }
     // else {
-      let tempEventModel = eventModel;
+      // let tempEventModel = eventModel;
       for (let i = 0; i < types.length; i++) { //for each type
         let incrementInMilliseconds = weekdayNo * 24 * 60 * 60 * 1000; //The next day
         let date2 = new Date(date.toDateString());
@@ -204,8 +205,8 @@ const event_times = {
 }
 async function fillRecurringEvents(futureStartingDate){ //Typically should be sunday (starts at 0)
       
-      let tempEventModel = eventModel;
-      let recurringEvents = await firestoreService.collection("recurring_events").get();
+      let eventModel = new Event();
+      let recurringEvents = await recurEventRef.get();
       // recurringEvents(listOfDocs => {
       for (let item of recurringEvents.docs) {
           // console.log(item);
@@ -217,34 +218,29 @@ async function fillRecurringEvents(futureStartingDate){ //Typically should be su
           if(newDate < new Date(item.data().end_date)) {
             let dateNumber = getDateNumber(newDate);
             let dateString = getDateString(newDate);
-            tempEventModel["event_date"] = dateNumber;
-            tempEventModel["event_date_txt"] = dateString;
-            tempEventModel["event_time_end"] = event_times[item.data().event_type]["normal_shift"].time_end;
-            tempEventModel["event_time_start"] = event_times[item.data().event_type]["normal_shift"].time_start;
-            tempEventModel["event_type"] = item.data().event_type;
-            tempEventModel["first_name"] = item.data().first_name;
-            tempEventModel["first_shift"] = false; //Possibly look into this logic
-            tempEventModel["is_current"] = true; //Is this needed?
-            tempEventModel["is_important_event"] = false;
-            tempEventModel["key"] = "nan"; //Not sure?
-            tempEventModel["last_name"] = item.data().last_name ? "hey": "none";
-            tempEventModel["note"] = item.data().comment ?  "hey": "none";
-            tempEventModel["slot"] = await getSlotNumber(dateNumber, item.data().event_type);
-            tempEventModel["uid"] = item.data().uid ?  "hey": "none";
+            eventModel.setDate = dateNumber;
+            eventModel.setDateTxt = dateString;
+            eventModel.setTimeEnd= event_times[item.data().event_type]["normal_shift"].time_end;
+            eventModel.setTimeStart= event_times[item.data().event_type]["normal_shift"].time_start;
+            eventModel.setEventType = item.data().event_type;
+            eventModel.setfirstNameitem.data().first_name;
+            eventModel.setKey = "nan"; /// Not sure
+            eventModel.setlastName = item.data().last_name;
+            eventModel.setNote = item.data().comment ? item.data().comment : "";
+            eventModel.setSlot = await getSlotNumber(dateNumber, item.data().event_type);
+            eventModel.setUid = item.data().uid ? item.data().uid : "";
             if(item.data().event_type === "deldr") {
-              tempEventModel["delivery_type"] = item.data().delivery_type;
+              eventModel = new DeliveryEvent(eventModel);
+              eventModel.setDeliveryType = item.data().delivery_type;
             }
-            console.log(tempEventModel);
-            await firestoreService.collection("events").add(tempEventModel);
+            console.log(eventModel);
+            await eventsRef.add(eventModel);
           }
-        
       }
-      // })    
-
 }
 
 function getSlotNumber(eventDate, eventType){
-   let existingEvents= firestoreService.collection("events").where("event_date", "==", eventDate)
+   let existingEvents= eventsRef.where("event_date", "==", eventDate)
   .where("event_type", "==", eventType).orderBy("slot", "desc").get();
   return existingEvents.then(docs => {
     console.log(docs.size);

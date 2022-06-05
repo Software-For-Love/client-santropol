@@ -1,4 +1,4 @@
-export class Event {
+ class Event {
     static event_times = {
         deldr: {
           first_shift: {
@@ -70,4 +70,9 @@ export class Event {
     set setSlot(num){
       this.slot = num;
     }
+    set setUid(uid){
+      this.uid = uid;
+    }
 }
+
+module.exports = {Event};
