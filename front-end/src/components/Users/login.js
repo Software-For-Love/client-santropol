@@ -6,7 +6,12 @@ import "../../App.css";
 import { Link } from "react-router-dom";
 import logo from "../../santropol.svg";
 import Button from "../Button";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+} from "firebase/auth";
 import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
@@ -14,18 +19,23 @@ const NormalLoginForm = () => {
   const auth = getAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const onFinish = (values) => {
-    // console.log("Received values of form: ", values);
-    setLoading(true);
 
-    signInWithEmailAndPassword(auth, values.email, values.password)
-      .then((user) => {
-        console.log("Successfully logged in", user);
-        navigate("/kitchen-am");
-      })
-      .catch(() => {
-        message.error("Invalid email or password");
-      });
+  const onFinish = async (values) => {
+    setLoading(true);
+    await setPersistence(
+      auth,
+      values.remember ? browserLocalPersistence : browserSessionPersistence
+    ); // automatically logs in the user or asks for email and password
+    const user = await signInWithEmailAndPassword(
+      auth,
+      values.email,
+      values.password
+    );
+    if (user) {
+      navigate("/kitchen-am");
+    } else {
+      message.error("Invalid email or password");
+    }
     setLoading(false);
   };
 
@@ -47,13 +57,13 @@ const NormalLoginForm = () => {
           rules={[
             {
               required: true,
-              message: "Please input your Username!",
+              message: "Please input your email!",
             },
           ]}
         >
           <Input
             prefix={<UserOutlined className="site-form-item-icon" />}
-            placeholder="Username"
+            placeholder="email"
           />
         </Form.Item>
         <Form.Item
