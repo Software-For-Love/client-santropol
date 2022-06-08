@@ -11,6 +11,7 @@ admin.initializeApp();
 const firestoreService=admin.firestore();
 const eventsRef = firestoreService.collection("events");
 const recurEventRef = firestoreService.collection("recurring_events");
+
 // const modelPath = path.resolve(".", "event.json");
 // const eventModel = JSON.parse(fs.readFileSync(modelPath));
 
@@ -38,14 +39,11 @@ exports.sampleCreation = functions.https.onRequest((req, res) => {
 exports.createEvent = functions.https.onRequest((req,res)=> {
 // exports.scheduledShiftGenerator = functions.pubsub.schedule("11 6 * * *").timeZone("America/New_York").onRun((context) =>{
   let incrementInMilliseconds = 24 * 60 * 60 * 1000; //Full day in miliseconds
-  // let firstDate = new Date();
-  // firstDate.setTime(firstDate.getTime() + incrementInMilliseconds); //monday
-  // let firstDateNumber = getDateNumber(firstDate);
+  let futureStartDate = new Date();
   
-  // incrementInMilliseconds = 24 * 60 * 60 * 1000 * 7 * 12; //12 weeks
-  // firstDate.setTime(firstDate.getTime()+incrementInMilliseconds);
-  let futureStartDate = new Date("June 12, 2022");
   console.log('creating...');
+  //This is some start date in the future to start adding events to that week
+  futureStartDate = futureStartDate.setTime(futureStartDate.getTime() + 7 * incrementInMilliseconds)
   fillRecurringEvents(futureStartDate);
 
   // printStrings(firstDate).then(() => {
@@ -99,7 +97,7 @@ function printStrings(date) {
     // if (weekdayNo == 3) { //thursday
     //   let incrementInMilliseconds = weekdayNo * 24 * 60 * 60 * 1000;
     //   let date2 = new Date(date.toDateString());
-    //   date2.setTime(date.getTime() + incrementInMilliseconds);
+    //   date2.Time(date.getTime() + incrementInMilliseconds);
     //   let dateNumber = getDateNumber(date2);
     //   let dateString = getDateString(date2);
     //   for (let j = 0; j < slotAmount[3]; j++) { //for each slot
@@ -128,7 +126,7 @@ function printStrings(date) {
       for (let i = 0; i < types.length; i++) { //for each type
         let incrementInMilliseconds = weekdayNo * 24 * 60 * 60 * 1000; //The next day
         let date2 = new Date(date.toDateString());
-        date2.setTime(date.getTime() + incrementInMilliseconds);
+        date2.Time(date.getTime() + incrementInMilliseconds);
         let dateNumber = getDateNumber(date2);
         let dateString = getDateString(date2);
         for (let j = 0; j < slotAmount[i]; j++) { //for each slot
@@ -204,14 +202,13 @@ const event_times = {
   }
 }
 async function fillRecurringEvents(futureStartingDate){ //Typically should be sunday (starts at 0)
-      
+  console.log("Here before evene");
       let eventModel = new Event();
+      let incrementInMilliseconds = 24 * 60 * 60 * 1000; //Full day in miliseconds
       let recurringEvents = await recurEventRef.get();
-      // recurringEvents(listOfDocs => {
       for (let item of recurringEvents.docs) {
-          // console.log(item);
           let newDate = new Date(futureStartingDate);
-          newDate.setDate(newDate.getDate() + item.data().int_day_of_week); 
+          newDate.setTime(newDate.getTime() + item.data().int_day_of_week*incrementInMilliseconds); 
           // console.log(newDate);
           // console.log(newDate + "this is the end date: "+ new Date(item.data().end_date));
           console.log(newDate < new Date(item.data().end_date));
@@ -220,21 +217,27 @@ async function fillRecurringEvents(futureStartingDate){ //Typically should be su
             let dateString = getDateString(newDate);
             eventModel.setDate = dateNumber;
             eventModel.setDateTxt = dateString;
-            eventModel.setTimeEnd= event_times[item.data().event_type]["normal_shift"].time_end;
-            eventModel.setTimeStart= event_times[item.data().event_type]["normal_shift"].time_start;
+            eventModel.setTimeEnd = Event.event_times[item.data().event_type]["normal_shift"].time_end;
+            eventModel.setTimeStart= Event.event_times[item.data().event_type]["normal_shift"].time_start;
             eventModel.setEventType = item.data().event_type;
-            eventModel.setfirstNameitem.data().first_name;
-            eventModel.setKey = "nan"; /// Not sure
-            eventModel.setlastName = item.data().last_name;
+            eventModel.setFirstName = item.data().first_name;
+            eventModel.Key = "nan"; /// Not sure
+            eventModel.setLastName = item.data().last_name;
             eventModel.setNote = item.data().comment ? item.data().comment : "";
             eventModel.setSlot = await getSlotNumber(dateNumber, item.data().event_type);
-            eventModel.setUid = item.data().uid ? item.data().uid : "";
+            eventModel.setUid = item.data().uid;
             if(item.data().event_type === "deldr") {
               eventModel = new DeliveryEvent(eventModel);
               eventModel.setDeliveryType = item.data().delivery_type;
             }
-            console.log(eventModel);
-            await eventsRef.add(eventModel);
+
+            try{
+              await eventsRef.doc(eventModel.getDate + eventModel.getEventType + eventModel.getSlot).create(JSON.parse(JSON.stringify(eventModel)));
+
+            }catch(err){
+              console.log(err);
+            }
+            
           }
       }
 }
@@ -261,7 +264,7 @@ function getDates(firstDate, lastDate, freq) {
     //push the first Date
     validDates.push(getDateNumber(firstDate));
     let incrementInMilliseconds = (freq) * 7 * 24 * 60 * 60 * 1000;
-    firstDate.setTime(firstDate.getTime() + incrementInMilliseconds);
+    firstDate.Time(firstDate.getTime() + incrementInMilliseconds);
   }
   if (firstDate.toDateString() == 'yhi') {
     printStrings(new Date());

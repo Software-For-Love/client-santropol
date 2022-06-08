@@ -2,12 +2,8 @@ const { Event } = require("./event");
 
  class DeliveryEvent extends Event {
 
-    // constructor(){
-    //     super();
-    //     this.delivery_type = "";
-    // }
-    constructor(eventObj){
-               // Object.assign(this, opts);
+    //A  coded version of downcasting, but for JS
+    constructor(eventObj){ 
         super();
         if(eventObj){
         Object.entries(eventObj).forEach((property) => {
