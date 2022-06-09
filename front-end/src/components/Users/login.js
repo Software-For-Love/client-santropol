@@ -7,18 +7,21 @@ import { Link } from "react-router-dom";
 import logo from "../../santropol.svg";
 import Button from "../Button";
 import {
+  getAuth,
   signInWithEmailAndPassword,
   setPersistence,
   browserLocalPersistence,
   browserSessionPersistence,
 } from "firebase/auth";
-import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { ResetPasswordOverlay } from "../Modal/index";
 
 const NormalLoginForm = () => {
   const auth = getAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [passwordResetModalVisible, setPasswordResetModalVisible] =
+    useState(false);
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -41,6 +44,10 @@ const NormalLoginForm = () => {
 
   return (
     <div className="form">
+      <ResetPasswordOverlay
+        visible={passwordResetModalVisible}
+        setVisible={setPasswordResetModalVisible}
+      />
       <img src={logo} className="App-logo" alt="logo" />
       <p>Login</p>
       <Form
@@ -89,6 +96,7 @@ const NormalLoginForm = () => {
             style={{ float: "right" }}
             className="login-form-forgot"
             type="link"
+            onClick={() => setPasswordResetModalVisible(true)}
           >
             Forgot password
           </AntdButton>
