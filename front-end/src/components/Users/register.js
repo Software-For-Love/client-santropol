@@ -34,13 +34,12 @@ const RegistrationForm = () => {
           email: values.email,
         });
         if (data.result) {
-          message.success("User found in Airtable");
-          // await createUserWithEmailAndPassword(
-          //   auth,
-          //   values.username,
-          //   values.password
-          // );
-          // navigate("/");
+          await createUserWithEmailAndPassword(
+            auth,
+            values.username,
+            values.password
+          );
+          navigate("/");
         } else {
           message.error("User not found!");
         }
