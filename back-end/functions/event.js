@@ -71,7 +71,7 @@ class Event {
   set setNoShow(no_show){
     this.no_show = no_show;
   }
-  set Key(key){
+  set setKey(key){
     this.key = key;
   }
   set setSlot(num){

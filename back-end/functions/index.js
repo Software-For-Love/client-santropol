@@ -16,28 +16,28 @@ const recurEventRef = firestoreService.collection("recurring_events");
 // const eventModel = JSON.parse(fs.readFileSync(modelPath));
 
 
-exports.sampleCreation = functions.https.onRequest((req, res) => {
-  firestoreService.collection("events").add({
-    event_date: 220614,
-    event_type: "deldr",
-    slot: 1
-  }).then(() =>{
-    return firestoreService.collection("recurring_events").add({
-      end_date: "2022-12-01T05:00:00.000Z",
-      event_type: "deldr",
-      delivery_type: "car",
-      last_name: "gra",
-      userid: "ad121asd3",
-      int_day_of_week: 2,
-      first_name: "ksha"
-    })
-  })
-})
+// exports.sampleCreation = functions.https.onRequest((req, res) => {
+//   firestoreService.collection("events").add({
+//     event_date: 220621,
+//     event_type: "deldr",
+//     slot: 1
+//   }).then(() =>{
+//     return firestoreService.collection("recurring_events").add({
+//       end_date: "2022-12-01T05:00:00.000Z",
+//       event_type: "deldr",
+//       delivery_type: "car",
+//       last_name: "gra",
+//       userid: "ad121asd3",
+//       int_day_of_week: 2,
+//       first_name: "ksha"
+//     })
+//   })
+// })
 /**
  * Cloud function used to delete shifts that have passed and generate future shifts. To run every Sunday at 9:00 AM.
  */
-exports.createEvent = functions.https.onRequest((req,res)=> {
-// exports.scheduledShiftGenerator = functions.pubsub.schedule("11 6 * * *").timeZone("America/New_York").onRun((context) =>{
+// exports.createEvent = functions.https.onRequest((req,res)=> {
+exports.scheduledShiftGenerator = functions.pubsub.schedule("11 6 * * *").timeZone("America/New_York").onRun((context) =>{
   let incrementInMilliseconds = 24 * 60 * 60 * 1000; //Full day in miliseconds
   let futureStartDate = new Date();
   
@@ -177,32 +177,7 @@ function printStrings(date) {
   });
 }
 
-const event_times = {
-  deldr: {
-    first_shift: {
-      time_start: "14:15",
-      time_end: "17:30"
-    }, 
-    normal_shift: {
-      time_start: "14:45",
-      time_end: "18:00"
-    }
-  },
-  kitpm: {
-    normal_shift: {
-      time_start: "13:30",
-      time_end: "16:30"
-    }
-  },
-  kitam: {
-    normal_shift: {
-      time_start: "9:30",
-      time_end: "12:30"
-    }
-  }
-}
 async function fillRecurringEvents(futureStartingDate){ //Typically should be sunday (starts at 0)
-  console.log("Here before evene");
       let eventModel = new Event();
       let incrementInMilliseconds = 24 * 60 * 60 * 1000; //Full day in miliseconds
       let recurringEvents = await recurEventRef.get();
@@ -221,7 +196,7 @@ async function fillRecurringEvents(futureStartingDate){ //Typically should be su
             eventModel.setTimeStart= Event.event_times[item.data().event_type]["normal_shift"].time_start;
             eventModel.setEventType = item.data().event_type;
             eventModel.setFirstName = item.data().first_name;
-            eventModel.Key = "nan"; /// Not sure
+            eventModel.setKey = "nan"; /// Not sure
             eventModel.setLastName = item.data().last_name;
             eventModel.setNote = item.data().comment ? item.data().comment : "";
             eventModel.setSlot = await getSlotNumber(dateNumber, item.data().event_type);
@@ -246,7 +221,6 @@ function getSlotNumber(eventDate, eventType){
    let existingEvents= eventsRef.where("event_date", "==", eventDate)
   .where("event_type", "==", eventType).orderBy("slot", "desc").get();
   return existingEvents.then(docs => {
-    console.log(docs.size);
     if(docs.size == 0) {
       return 1;
     } 
