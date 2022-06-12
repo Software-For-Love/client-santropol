@@ -73,6 +73,7 @@ eventRouter.post('/createEvent', async(req,res)=>{
     const userId = req.body.userId;
     const slot = req.body.slot;
     const date = req.body.eventDate? req.body.eventDate: Date.now();
+
     const userComment = req.body.userComment?req.body.userComment:"";
     const db = getFirestore();
     var dbDate = parseInt(date);
@@ -87,6 +88,7 @@ eventRouter.post('/createEvent', async(req,res)=>{
         first_name: firstName,
         last_name: lastName,
         user_comment: userComment
+
     }).catch(err => res.json({success: false, result: err}))
     .then( writeResult => {
         res.json({success: true, result: writeResult});
