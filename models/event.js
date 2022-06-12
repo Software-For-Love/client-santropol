@@ -39,8 +39,16 @@ class Event {
       this.slot = "";
       this.uid = "";
       this.no_show = false;
+      this.completed = false;
+      this.cancelled = false;
   }
 
+  set setCompleted(completed) {
+    this.completed = completed;
+  }
+  set setCancelled(cancelled){
+    this.cancelled = cancelled;
+  }
   set setDate(event_date){
     this.event_date = event_date;
   }
@@ -82,6 +90,12 @@ class Event {
   }
   
 
+  get getCompleted(){
+    return this.completed;
+  }
+  get getCancelled(){
+    return this.cancelled;
+  }
   get getDate(){
     return this.event_date;
   }
