@@ -15,25 +15,31 @@ eventRouter.get('/getEvents', async(req,res)=>{
     var year =  today.getFullYear()%100;
     var month = ((today.getMonth()+1) < 10?'0'+(today.getMonth()+1).toString():today.getMonth()+1 )
     var day =  ((today.getDate()+1) < 10?'0'+(today.getDate()+1).toString():today.getDate()+1 )
-   
-   
     var nextweek = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
     var nextweekYear =  nextweek.getFullYear()%100;
     var nextweekMonth = ((nextweek.getMonth()+1) < 10?'0'+(nextweek.getMonth()+1).toString():nextweek.getMonth()+1 );
     var nextweekDay =  ((nextweek.getDate()+1) < 10?'0'+(nextweek.getDate()+1).toString():nextweek.getDate()+1 );
-   
+
     var lowerDateBound =parseInt( year+month+day);
     var upperDateBound = parseInt(nextweekYear + nextweekMonth + nextweekDay);
+
     var result = []
-   
+
     const q = query(collection(db, "event"), where("event_date", "<=", upperDateBound), where("event_date", ">=", lowerDateBound));
     await getDocs(q).catch(err => res.json({success: false, result: err}))
     .then( querySnapshot  => {
+
        querySnapshot.forEach((doc) => {
+            // doc.data() is never undefined for query doc snapshots
             result.push({id: doc.id, data: doc.data()});
         });
         res.json({success: true, result});
     });;
+
+
+    
+
+
 
     //get all the events for the current week 
 });
