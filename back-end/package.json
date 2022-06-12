@@ -18,6 +18,7 @@
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "firebase": "^9.6.7",
-    "firebase-admin": "^10.0.2"
+    "firebase-admin": "^10.0.2",
+    "moment": "^2.29.3"
   }
 }

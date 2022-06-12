@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 import Calendar from "../../components/Calendar";
+import { AuthContext } from "../../Contexts/AuthContext";
 
 const KitchenPM = () => {
+  const { userType } = useContext(AuthContext);
   const kitchenPmInfo = [
     {
       firstName: "Juliet",
@@ -19,7 +21,7 @@ const KitchenPM = () => {
   ];
   return (
     <div>
-      <Calendar info={kitchenPmInfo} variant='kitchenPM' />
+      <Calendar info={kitchenPmInfo} variant="kitchenPM" type={userType} />
     </div>
   );
 };

@@ -10,6 +10,7 @@ const AuthProvider = (props) => {
   const [userDataLoading, setUserDataLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+  const [userType, setUserType] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -23,13 +24,31 @@ const AuthProvider = (props) => {
     };
   }, [auth, user]);
 
+  auth.currentUser
+    ?.getIdTokenResult()
+    .then((idTokenResult) => {
+      // Confirm the user is an Admin.
+      if (!!idTokenResult.claims.admin) {
+        // Show admin UI.
+        setUserType("admin");
+      } else {
+        // Show regular user UI.
+        setUserType("volunteer");
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+
   const logout = () => {
     setIsLoggedIn(false);
     signOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, logout, user, userDataLoading }}>
+    <AuthContext.Provider
+      value={{ isLoggedIn, logout, user, userDataLoading, userType }}
+    >
       {props.children}
     </AuthContext.Provider>
   );
