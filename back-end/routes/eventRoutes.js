@@ -7,14 +7,19 @@ const { getFirestore, getDocs,setDoc, doc,collection, query, where } = require('
 /**
  *  Request to get events for the current week optional paramater is the date selected.
  * 
+ *  @param  eventType: Optional parameter for event type default value is kit am
+ *  @param  eventDate: Optional parameter for event date default value is today 
+ *  
+ * 
  */
 eventRouter.get('/getEvents', async(req,res)=>{
-
+    //Optional event type, default value is kitam
+    let eventType = req.body.eventType?req.query.eventType:"kitam";
     const db = getFirestore();
-    const today = req.query.eventDate? req.query.eventDate:new Date();
+    const today = req.body.eventDate? req.query.eventDate:new Date();
     var year =  today.getFullYear()%100;
     var month = ((today.getMonth()+1) < 10?'0'+(today.getMonth()+1).toString():today.getMonth()+1 )
-    var day =  ((today.getDate()+1) < 10?'0'+(today.getDate()+1).toString():today.getDate()+1 )
+    var day =  ((today.getDate()) < 10?'0'+(today.getDate()).toString():today.getDate() )
     var nextweek = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
     var nextweekYear =  nextweek.getFullYear()%100;
     var nextweekMonth = ((nextweek.getMonth()+1) < 10?'0'+(nextweek.getMonth()+1).toString():nextweek.getMonth()+1 );
@@ -25,7 +30,8 @@ eventRouter.get('/getEvents', async(req,res)=>{
 
     var result = []
 
-    const q = query(collection(db, "event"), where("event_date", "<=", upperDateBound), where("event_date", ">=", lowerDateBound));
+    const q = query(collection(db, "event"), where("event_date", "<=", upperDateBound), where("event_date", ">=", lowerDateBound),
+    where("event_type", "==", eventType));
     await getDocs(q).catch(err => res.json({success: false, result: err}))
     .then( querySnapshot  => {
 
@@ -61,12 +67,13 @@ eventRouter.get('/getEvents', async(req,res)=>{
  * @param slot;
  */
 eventRouter.post('/createEvent', async(req,res)=>{
-    const firstName = req.query.firstName;
-    const lastName = req.query.lastName;
-    const eventType =req.query.eventType;
-    const userId = req.query.userId;
-    const slot = req.query.slot;
-    const date = req.query.eventDate? req.query.eventDate: Date.now();
+    const firstName = req.body.firstName;
+    const lastName = req.body.lastName;
+    const eventType =req.body.eventType;
+    const userId = req.body.userId;
+    const slot = req.body.slot;
+    const date = req.body.eventDate? req.body.eventDate: Date.now();
+    const userComment = req.body.userComment;
     const db = getFirestore();
     var dbDate = parseInt(date);
 
@@ -79,6 +86,7 @@ eventRouter.post('/createEvent', async(req,res)=>{
         event_type: eventType,
         first_name: firstName,
         last_name: lastName,
+        user_comment: userComment
     }).catch(err => res.json({success: false, result: err}))
     .then( writeResult => {
         res.json({success: true, result: writeResult});
