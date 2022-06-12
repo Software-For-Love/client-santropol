@@ -1,4 +1,4 @@
-export class Event {
+class Event {
   static event_times = {
       deldr: {
         first_shift: {
@@ -41,86 +41,87 @@ export class Event {
       this.no_show = false;
   }
 
-  set date(event_date){
+  set setDate(event_date){
     this.event_date = event_date;
   }
-  set dateTxt(event_date_txt){
+  set setDateTxt(event_date_txt){
     this.event_date_txt = event_date_txt;
   }
-  set timeEnd(event_time_end){
+  set setTimeEnd(event_time_end){
     this.event_time_end = event_time_end ;
   }
-  set timeStart(event_time_start){
+  set setTimeStart(event_time_start){
     this.event_time_start = event_time_start;
   }
-  set eventType(event_type){ 
+  set setEventType(event_type){ 
     this.event_type = event_type;
   }
-  set firstName(first_name){
+  set setFirstName(first_name){
     this.first_name = first_name;
   }
-  set lastName(last_name) {
+  set setLastName(last_name) {
     this.last_name = last_name;
   }
-  set firstShift(first_shift){
+  set setFirstShift(first_shift){
     this.first_shift = first_shift;
   }
-  set note(note){
+  set setNote(note){
     this.note = note;
   }
-  set noShow(no_show){
+  set setNoShow(no_show){
     this.no_show = no_show;
   }
-  set skey(key){
+  set setKey(key){
     this.key = key;
   }
-  set slot(num){
+  set setSlot(num){
     this.slot = num;
   }
-  set uid(uid){
+  set setUid(uid){
     this.uid = uid;
   }
   
 
-  get date(){
-    this.event_date = event_date;
+  get getDate(){
+    return this.event_date;
   }
-  get dateTxt(){
-    this.event_date_txt = event_date_txt;
+  get getDateTxt(){
+    return this.event_date_txt;
   }
-  get timeEnd(){
-    this.event_time_end = event_time_end ;
+  get getTimeEnd(){
+    return this.event_time_end;
   }
-  get timeStart(){
-    this.event_time_start = event_time_start;
+  get getTimeStart(){
+    return this.event_time_start;
   }
-  get eventType(){ 
-    this.event_type = event_type;
+  get getEventType(){ 
+    return this.event_type;
   }
-  get firstName(){
-    this.first_name = first_name;
+  get getFirstName(){
+    return this.first_name;
   }
-  get lastName() {
-    this.last_name = last_name;
+  get getLastName() {
+    return this.last_name;
   }
-  get firstShift(){
-    this.first_shift = first_shift;
+  get getFirstShift(){
+   return this.first_shift;
   }
-  get note(){
-    this.note = note;
+  get getNote(){
+    return this.note;
   }
-  get noShow(){
-    this.no_show = no_show;
+  get getNoShow(){
+    return this.no_show;
   }
-  get key(){
-    this.key = key;
+  get getKey(){
+    return this.key;
   }
-  get slot(){
-    this.slot = num;
+  get getSlot(){
+   return this.slot;
   }
-  get uid(){
-    this.uid = uid;
+  get getUid(){
+    return this.uid;
   }
+  
 }
 
 
