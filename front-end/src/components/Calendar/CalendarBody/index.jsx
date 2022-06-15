@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import Body, { PlusIcon } from "./styles";
 import Button from "../../Button";
 import PropTypes from "prop-types";
@@ -9,7 +9,6 @@ import CalendarCell from "../CalendarCell";
 const CalendarBody = (props) => {
   const { date, type, info, variant } = props;
   const startOfWeek = moment(date).startOf("week");
-  const [numberOfCells, setNumberOfCells] = useState([3, 3, 3, 3, 3, 3, 3]);
 
   const getDailyEvents = () => {
     const result = [[], [], [], [], [], [], []];
@@ -29,16 +28,27 @@ const CalendarBody = (props) => {
         },
       });
     });
+    console.log(result);
+    result.forEach((dailyEvents) => {
+      const length = 3 - dailyEvents.length;
+      for (let i = 0; i < length; i++) {
+        dailyEvents.push({
+          event_date: null,
+          first_name: null,
+          last_name: null,
+        });
+      }
+    });
     return result;
   };
 
   const events = getDailyEvents();
 
-  const plusIconClickHandler = (index) => {
-    const newNumberOfCells = [...numberOfCells];
-    newNumberOfCells[index] += 1;
-    setNumberOfCells(newNumberOfCells);
-  };
+  // const plusIconClickHandler = (index) => {
+  //   const newNumberOfCells = [...numberOfCells];
+  //   newNumberOfCells[index] += 1;
+  //   setNumberOfCells(newNumberOfCells);
+  // };
 
   return (
     <Body justify="space-between">
@@ -57,9 +67,7 @@ const CalendarBody = (props) => {
                 variant={variant}
               />
             ))}
-            {type === "admin" && (
-              <PlusIcon onClick={() => plusIconClickHandler(i)} />
-            )}
+            {type === "admin" && <PlusIcon onClick={() => {}} />}
           </Col>
         );
       })}
