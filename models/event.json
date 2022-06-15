@@ -1,0 +1,17 @@
+{
+    "event_date": "",
+    "event_date_txt": "",
+    "event_time_end": "",
+    "event_time_start": "",
+    "event_type": "",
+    "first_name": "",
+    "first_shift": false,
+    "is_current": true,
+    "is_important_event": false,
+    "key": "",
+    "last_name": "",
+    "note": "",
+    "slot": "",
+    "uid": "",
+    "no_show": false
+}
