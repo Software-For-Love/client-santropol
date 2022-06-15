@@ -28,8 +28,6 @@ const CalendarComponent = (props) => {
     setLoading(false);
   };
 
-  console.log(events);
-
   useEffect(() => {
     getEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps

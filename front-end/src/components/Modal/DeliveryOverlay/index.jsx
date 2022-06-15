@@ -18,15 +18,15 @@ const DeliveryModal = ({ visible, setVisible, type, date }) => {
   };
 
   const Footer = () => (
-    <Row justify='center'>
-      <Button type='primary' onClick={onClose}>
+    <Row justify="center">
+      <Button type="primary" onClick={onClose}>
         Confirm
       </Button>
     </Row>
   );
 
   const Title = () => (
-    <Row justify='center'>
+    <Row justify="center">
       <h3>Delivery</h3>
     </Row>
   );
@@ -75,7 +75,7 @@ DeliveryModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   setVisible: PropTypes.func.isRequired,
   date: PropTypes.object.isRequired,
-  type: PropTypes.string.isRequired,
+  type: PropTypes.string,
 };
 
 export default DeliveryModal;

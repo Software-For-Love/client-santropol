@@ -58,8 +58,8 @@ const CalendarCell = (props) => {
             )}
             <Typography.Text style={{ fontSize: "1rem" }}>
               {`${volunteerInfo.firstName || "No Data"} ${
-                volunteerInfo.lastName[0] || ""
-              }.`}
+                volunteerInfo.lastName ? `${volunteerInfo.lastName[0]}.` : ""
+              }`}
             </Typography.Text>
           </>
         )}
