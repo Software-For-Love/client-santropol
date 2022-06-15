@@ -1,71 +1,80 @@
-import React, { useState, useContext } from "react";
-import { AuthContext } from "../../Contexts/AuthContext";
+import React, { useState } from "react";
 import { Form, Input, Checkbox, message, Button as AntdButton } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import "antd/dist/antd.css";
 import "../../App.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import logo from "../../santropol.svg";
 import Button from "../Button";
-import AxiosInstance from "../../API/api";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+} from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { ResetPasswordOverlay } from "../Modal/index";
 
 const NormalLoginForm = () => {
-  const { login } = useContext(AuthContext);
+  const auth = getAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [passwordResetModalVisible, setPasswordResetModalVisible] =
+    useState(false);
 
   const onFinish = async (values) => {
     setLoading(true);
-    try {
-      const { data } = await AxiosInstance.post(
-        `auth/signIn?username=${values.username}&password=${values.password}`
-      );
-      console.log(data);
-      if (data.user) {
-        login(data.user);
-        if (values.remember) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-        } else {
-          sessionStorage.setItem("user", JSON.stringify(data.user));
-        }
-        navigate("/kitchem-am");
-      } else {
-        message.error(data.result || data.code);
-      }
-    } catch (error) {
-      message.error("Something went wrong!");
+    await setPersistence(
+      auth,
+      values.remember ? browserLocalPersistence : browserSessionPersistence
+    ); // automatically logs in the user or asks for email and password
+    const user = await signInWithEmailAndPassword(
+      auth,
+      values.email,
+      values.password
+    );
+    if (user) {
+      navigate("/kitchen-am");
+    } else {
+      message.error("Invalid email or password");
     }
     setLoading(false);
   };
 
   return (
-    <div className='form'>
-      <img src={logo} className='App-logo' alt='logo' />
+    <div className="form">
+      <ResetPasswordOverlay
+        visible={passwordResetModalVisible}
+        setVisible={setPasswordResetModalVisible}
+      />
+      <img src={logo} className="App-logo" alt="logo" />
       <p>Login</p>
       <Form
-        name='normal_login'
-        className='login-form'
+        name="normal_login"
+        className="login-form"
         initialValues={{
           remember: true,
         }}
         onFinish={onFinish}
       >
         <Form.Item
-          className='userbox'
-          name='username'
+          className="userbox"
+          name="email"
           rules={[
             {
               required: true,
-              message: "Please input your Username!",
+              message: "Please input your email!",
             },
           ]}
         >
           <Input
-            prefix={<UserOutlined className='site-form-item-icon' />}
-            placeholder='Username'
+            prefix={<UserOutlined className="site-form-item-icon" />}
+            placeholder="email"
           />
         </Form.Item>
         <Form.Item
-          name='password'
+          name="password"
           rules={[
             {
               required: true,
@@ -74,29 +83,30 @@ const NormalLoginForm = () => {
           ]}
         >
           <Input
-            prefix={<LockOutlined className='site-form-item-icon' />}
-            type='password'
-            placeholder='Password'
+            prefix={<LockOutlined className="site-form-item-icon" />}
+            type="password"
+            placeholder="Password"
           />
         </Form.Item>
         <Form.Item>
-          <Form.Item name='remember' valuePropName='checked' noStyle>
+          <Form.Item name="remember" valuePropName="checked" noStyle>
             <Checkbox style={{ float: "left" }}>Remember me</Checkbox>
           </Form.Item>
           <AntdButton
             style={{ float: "right" }}
-            className='login-form-forgot'
-            type='link'
+            className="login-form-forgot"
+            type="link"
+            onClick={() => setPasswordResetModalVisible(true)}
           >
             Forgot password
           </AntdButton>
         </Form.Item>
 
         <Form.Item>
-          <Button style={{ width: "100%" }} htmlType='submit' loading={loading}>
+          <Button style={{ width: "100%" }} htmlType="submit" loading={loading}>
             Log in
           </Button>{" "}
-          or <Link to='/register'>register now</Link>
+          or <Link to="/register">register now</Link>
         </Form.Item>
       </Form>
     </div>

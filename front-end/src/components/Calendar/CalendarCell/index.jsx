@@ -23,7 +23,6 @@ const CalendarCell = (props) => {
   const [deliveryModalVisible, setDeliveryModalVisible] = useState(false);
 
   const onClickHandler = () => {
-    console.log(type, variant);
     if (type === "admin") {
       if (variant !== "delivery") {
         setModalVisible(true);
@@ -34,20 +33,20 @@ const CalendarCell = (props) => {
   };
 
   const MissedShiftIndicator = () => (
-    <Tooltip title='Missed more than 3 shifts'>
-      <Icon src={MissedShiftIcon} alt='missed-three-shifts' />
+    <Tooltip title="Missed more than 3 shifts">
+      <Icon src={MissedShiftIcon} alt="missed-three-shifts" />
     </Tooltip>
   );
 
   const DeliveryTypeIndicator = ({ type }) => (
-    <Icon src={DELIVERY_ICONS[type]} alt='delivery-icon' />
+    <Icon src={DELIVERY_ICONS[type]} alt="delivery-icon" />
   );
 
   return (
     <>
       <Cell onClick={onClickHandler} type={type}>
         {type === "admin" && volunteerInfo && (
-          <DeleteButton src={DeleteIcon} alt='delete shift' />
+          <DeleteButton src={DeleteIcon} alt="delete shift" />
         )}
         {volunteerInfo && (
           <>
@@ -58,7 +57,9 @@ const CalendarCell = (props) => {
               <DeliveryTypeIndicator type={volunteerInfo.deliveryType} />
             )}
             <Typography.Text style={{ fontSize: "1rem" }}>
-              {`${volunteerInfo.firstName} ${volunteerInfo.lastName[0]}.`}
+              {`${volunteerInfo.firstName || "No Data"} ${
+                volunteerInfo.lastName ? `${volunteerInfo.lastName[0]}.` : ""
+              }`}
             </Typography.Text>
           </>
         )}
@@ -67,6 +68,7 @@ const CalendarCell = (props) => {
         visible={modalVisible}
         setVisible={setModalVisible}
         date={date}
+        volunteerInfo={volunteerInfo}
       />
       <DeliveryOverlay
         visible={deliveryModalVisible}

@@ -1,26 +1,54 @@
+import { useEffect } from "react";
 import { createContext, useState } from "react";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import firebaseApp from "../firebase";
 
 const AuthContext = createContext();
 
 const AuthProvider = (props) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("user") || sessionStorage.getItem("user")
-  );
+  const auth = getAuth(firebaseApp);
+  const [userDataLoading, setUserDataLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+  const [userType, setUserType] = useState(null);
 
-  const login = (user) => {
-    setIsLoggedIn(true);
-    setUser(user);
-  };
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setIsLoggedIn(!!user);
+      setUserDataLoading(false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [auth, user]);
+
+  auth.currentUser
+    ?.getIdTokenResult()
+    .then((idTokenResult) => {
+      // Confirm the user is an Admin.
+      if (!!idTokenResult.claims.admin) {
+        // Show admin UI.
+        setUserType("admin");
+      } else {
+        // Show regular user UI.
+        setUserType("volunteer");
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 
   const logout = () => {
     setIsLoggedIn(false);
-    sessionStorage.removeItem("user");
-    localStorage.removeItem("user");
+    signOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout, user }}>
+    <AuthContext.Provider
+      value={{ isLoggedIn, logout, user, userDataLoading, userType }}
+    >
       {props.children}
     </AuthContext.Provider>
   );

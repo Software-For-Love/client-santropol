@@ -1,25 +1,13 @@
-import React from "react";
+import React, { useContext } from "react";
+import { AuthContext } from "../../Contexts/AuthContext";
 import Calendar from "../../components/Calendar";
 
 const KitchenAM = () => {
-  const kitchenAmInfo = [
-    {
-      firstName: "Juliet",
-      lastName: "Aaaa",
-    },
-    {
-      firstName: "Parth",
-      lastName: "Aaaa",
-      missedShifts: true,
-    },
-    {
-      firstName: "Maahi",
-      lastName: "Aaaa",
-    },
-  ];
+  const { userType } = useContext(AuthContext);
+
   return (
     <div>
-      <Calendar type='admin' info={kitchenAmInfo} variant='kitchenAM' />
+      <Calendar type={userType} variant="kitam" />
     </div>
   );
 };

@@ -5,8 +5,8 @@ import { backendServer } from "../environment";
 const AxiosInstance = axios.create({
   baseURL: backendServer,
   headers: {
-    "Content-Type": "application/x-www-form-urlencoded",
-    // "Content-Type": "application/json",
+    // "Content-Type": "application/x-www-form-urlencoded",
+    "Content-Type": "application/json",
     Accept: "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "*",
