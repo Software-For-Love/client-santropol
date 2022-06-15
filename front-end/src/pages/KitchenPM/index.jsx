@@ -21,7 +21,7 @@ const KitchenPM = () => {
   ];
   return (
     <div>
-      <Calendar info={kitchenPmInfo} variant="kitchenPM" type={userType} />
+      <Calendar info={kitchenPmInfo} variant="kitpm" type={userType} />
     </div>
   );
 };

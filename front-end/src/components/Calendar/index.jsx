@@ -19,6 +19,7 @@ const CalendarComponent = (props) => {
       const { data } = await AxiosInstance.get("/events/getEvents", {
         params: {
           eventDate: date.format("YYYY-MM-DD"),
+          eventType: variant,
         },
       });
       setEvents(data.result);

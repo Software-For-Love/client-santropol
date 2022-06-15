@@ -7,7 +7,7 @@ const KitchenAM = () => {
 
   return (
     <div>
-      <Calendar type={userType} variant="kitchenAM" />
+      <Calendar type={userType} variant="kitam" />
     </div>
   );
 };

@@ -23,7 +23,7 @@ const Delivery = () => {
   ];
   return (
     <div>
-      <Calendar info={deliveryInfo} variant="delivery" type={userType} />
+      <Calendar info={deliveryInfo} variant="deliv" type={userType} />
     </div>
   );
 };

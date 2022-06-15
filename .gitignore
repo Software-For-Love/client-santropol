@@ -3,6 +3,10 @@
 # dependencies
 front-end/node_modules
 back-end/node_modules
+
+front-end/package-lock.json
+back-end/package-lock.json
+package-lock.json
 /.pnp
 .pnp.js
 
@@ -24,3 +28,5 @@ yarn-debug.log*
 yarn-error.log*
 .vscode
 .idea
+node_modules
+
