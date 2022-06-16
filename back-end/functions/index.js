@@ -13,6 +13,7 @@ const eventsRef = firestoreService.collection("events");
 const recurEventRef = firestoreService.collection("recurring_events");
 const oneDayMilliseconds = 24 * 60 * 60 * 1000;
 const maxEventsPerWeek = 3;
+const numOfWeeksAhead = 3;
 
 exports.sampleCreation = functions.https.onRequest((req, res) => {
   let testEvent = new Event();
@@ -147,10 +148,10 @@ async function fillRecurringEvents(futureStartingDate){ //Typically should be su
       let oneDayMilliseconds = 24 * 60 * 60 * 1000; //Full day in miliseconds
       let recurringEvents = await recurEventRef.get();
       for (let item of recurringEvents.docs) {
+          let flag = true;
           let newDate = new Date(futureStartingDate);
-          newDate.setTime(newDate.getTime() + item.data().int_day_of_week*oneDayMilliseconds); 
+		  newDate.setTime(newDate.getTime() + item.data().int_day_of_week*oneDayMilliseconds); 
           let newRecurEventCondition = await checkIfNewRecurringEvent(item, newDate);
-          let eventLimitCondition = await checkUserEventsLimit(item.data().uid,futureStartingDate);
           eventModel.setTimeEnd = Event.event_times[item.data().event_type]["normal_shift"].time_end;
           eventModel.setTimeStart = Event.event_times[item.data().event_type]["normal_shift"].time_start;
           eventModel.setEventType = item.data().event_type;
@@ -160,6 +161,18 @@ async function fillRecurringEvents(futureStartingDate){ //Typically should be su
           eventModel.setNote = item.data().comment ? item.data().comment : "";
           eventModel.setSlot = await getSlotNumber(dateNumber, item.data().event_type);
           eventModel.setUid = item.data().uid;
+          for(let i = 0; i < numOfWeeksAhead; i++){
+			let eventLimitCondition = await checkUserEventsLimit(item.data().uid,futureStartingDate.getTime() + i*oneDayMilliseconds);
+			if(flag){
+				if(newDate < new Date(item.data().end_date) && eventLimitCondition) {
+					
+				}
+            } 
+            else {
+              break;
+            }
+          }
+          
           if(newDate < new Date(item.data().end_date) && eventLimitCondition && !newRecurEventCondition) {
             let dateNumber = getDateNumber(newDate);
             let dateString = getDateString(newDate);
