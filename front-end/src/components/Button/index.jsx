@@ -20,6 +20,8 @@ index.propTypes = {
   onClick: PropTypes.func,
   fullWidth: PropTypes.bool,
   isActive: PropTypes.bool,
+  htmlType: PropTypes.string,
+  style: PropTypes.object,
 };
 
 export default index;

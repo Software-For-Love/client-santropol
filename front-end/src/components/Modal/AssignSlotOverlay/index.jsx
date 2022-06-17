@@ -4,19 +4,19 @@ import Button from "../../Button";
 import Modal, { CommentTextArea } from "../styles";
 import moment from "moment";
 
-const index = ({ visible, setVisible, date }) => {
+const index = ({ visible, setVisible, date, volunteerInfo }) => {
   const onClose = () => {
     setVisible(false);
   };
 
   const Footer = () => (
-    <Row justify='center'>
+    <Row justify="center">
       <Button onClick={onClose}>Confirm</Button>
     </Row>
   );
 
   const Title = () => (
-    <Row justify='center'>
+    <Row justify="center">
       <h3>AM Kitchen Shift</h3>
     </Row>
   );
@@ -36,7 +36,9 @@ const index = ({ visible, setVisible, date }) => {
         8AM - 11:30AM
       </p>
       <p>
-        <strong>Assign Volunteer: </strong>
+        <strong>Assigned Volunteer: </strong>
+        {volunteerInfo &&
+          `${volunteerInfo.firstName} ${volunteerInfo.lastName}`}
       </p>
       <b>Comments:</b>
       <CommentTextArea />
@@ -48,6 +50,7 @@ index.propTypes = {
   visible: PropTypes.bool.isRequired,
   setVisible: PropTypes.func.isRequired,
   date: PropTypes.object.isRequired,
+  volunteerInfo: PropTypes.object,
 };
 
 export default index;

@@ -1,2 +1,7 @@
 node_modules/
+<<<<<<< HEAD
 *.log
+=======
+package-lock.json
+.log
+>>>>>>> main
