@@ -50,7 +50,7 @@ const numOfWeeksAhead = 3;
  * Cloud function used to delete shifts that have passed and generate future shifts. To run every Sunday at 9:00 AM.
  */
 // exports.createEvent = functions.https.onRequest(async (req,res)=> {
-exports.scheduledShiftGenerator = functions.pubsub.schedule("11 6 * * *").timeZone("America/New_York").onRun((context) =>{
+exports.scheduledShiftGenerator = functions.pubsub.schedule("0 9 * * 0").timeZone("America/New_York").onRun((context) =>{
   console.log('creating...');
   let recurringEvents = await recurEventRef.get();
   for (let item of recurringEvents.docs) {
