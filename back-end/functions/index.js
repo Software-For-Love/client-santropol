@@ -15,45 +15,43 @@ const oneDayMilliseconds = 24 * 60 * 60 * 1000;
 const maxEventsPerWeek = 3;
 const numOfWeeksAhead = 3;
 
-exports.sampleCreation = functions.https.onRequest((req, res) => {
-  let testEvent = new Event();
-  testEvent.setDate = 220624;
-  testEvent.setEventType = "kitpm";
-  testEvent.setFirstName = "carl";
-  testEvent.setLastName = "Anthoney";
-  testEvent.setUid = "ad121asd3";
-  testEvent.setSlot = 1;
-  let {...a} = testEvent;
-  eventsRef.add(a).then(() =>{
-      recurEventRef.add({
-      end_date: "2022-12-01T05:00:00.000Z",
-      event_type: "deldr",
-      delivery_type: "car",
-      last_name: "carl",
-      uid: "ad121asd3",
-      int_day_of_week: 2,
-      first_name: "Anthoney",
-      new_recurring_event: true
-    })
-    recurEventRef.add({
-      end_date: "2022-12-01T05:00:00.000Z",
-      event_type: "kitpm",
-      last_name: "carl",
-      uid: "ad121asd3",
-      int_day_of_week: 3,
-      first_name: "Anthoney",
-      new_recurring_event: true
-    })
-  })
-})
+// exports.sampleCreation = functions.https.onRequest((req, res) => {
+//   let testEvent = new Event();
+//   testEvent.setDate = 220624;
+//   testEvent.setEventType = "kitpm";
+//   testEvent.setFirstName = "carl";
+//   testEvent.setLastName = "Anthoney";
+//   testEvent.setUid = "ad121asd3";
+//   testEvent.setSlot = 1;
+//   let {...a} = testEvent;
+//   eventsRef.add(a).then(() =>{
+//       recurEventRef.add({
+//       end_date: "2022-12-01T05:00:00.000Z",
+//       event_type: "deldr",
+//       delivery_type: "car",
+//       last_name: "carl",
+//       uid: "ad121asd3",
+//       int_day_of_week: 2,
+//       first_name: "Anthoney",
+//       new_recurring_event: true
+//     })
+//     recurEventRef.add({
+//       end_date: "2022-12-01T05:00:00.000Z",
+//       event_type: "kitpm",
+//       last_name: "carl",
+//       uid: "ad121asd3",
+//       int_day_of_week: 3,
+//       first_name: "Anthoney",
+//       new_recurring_event: true
+//     })
+//   })
+// })
 /**
  * Cloud function used to delete shifts that have passed and generate future shifts. To run every Sunday at 9:00 AM.
  */
-exports.createEvent = functions.https.onRequest(async (req,res)=> {
-// exports.scheduledShiftGenerator = functions.pubsub.schedule("11 6 * * *").timeZone("America/New_York").onRun((context) =>{
+// exports.createEvent = functions.https.onRequest(async (req,res)=> {
+exports.scheduledShiftGenerator = functions.pubsub.schedule("11 6 * * *").timeZone("America/New_York").onRun((context) =>{
   console.log('creating...');
-  //This is some start date in the future to start adding events to that week
-  // futureStartDate = futureStartDate.setTime(futureStartDate.getTime() + 7*oneDayMilliseconds*numOfWeeksAhead);
   let recurringEvents = await recurEventRef.get();
   for (let item of recurringEvents.docs) {
   let futureStartDate = new Date();
@@ -80,8 +78,8 @@ exports.createEvent = functions.https.onRequest(async (req,res)=> {
 });
 
 
-
-async function fillRecurringEvents(newEvent, item, futureStartingDate){ //Typically should be sunday (starts at 0)
+//Typically should be sunday (starts at 0)
+async function fillRecurringEvents(newEvent, item, futureStartingDate){ 
           let newDate = new Date(futureStartingDate);
           futureStartingDate = new Date(futureStartingDate);
   		    newDate.setTime(newDate.getTime() + item.data().int_day_of_week*oneDayMilliseconds); 
@@ -121,7 +119,6 @@ function createEvent(item){
   event.setKey = "nan"; /// Not sure
   event.setLastName = item.data().last_name;
   event.setNote = item.data().comment ? item.data().comment : "";
-  // event.setSlot = await getSlotNumber(dateNumber, item.data().event_type);
   event.setUid = item.data().uid;
   return event;
 }
