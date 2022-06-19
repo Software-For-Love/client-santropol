@@ -8,6 +8,7 @@ class RecurringEvent {
         this.uid = "";
         this.int_day_of_week = null;
         this.start_date = "";
+        this.new_recurring_event = true;
     }
 
     get getEndDate(){
