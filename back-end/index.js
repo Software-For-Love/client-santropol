@@ -11,7 +11,7 @@ const port = process.env.PORT || 5000;
 const indexRouter = require("./routes/routes");
 const authRouter = require("./routes/authRouter");
 const eventRouter = require("./routes/eventRoutes");
-
+const verifyToken = require("./middlewares/verifyToken");
 const cors = require("cors");
 const firebaseConfig = {
   apiKey: process.env.NODE_APP_API_KEY,
@@ -29,6 +29,7 @@ firebase.initializeApp(firebaseConfig);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors({ origin: "*" }));
+app.use(verifyToken);
 
 app.use("/", indexRouter);
 app.use("/auth", authRouter);
