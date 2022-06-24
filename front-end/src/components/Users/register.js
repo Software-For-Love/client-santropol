@@ -24,7 +24,16 @@ const RegistrationForm = () => {
         values.password
       );
       if (user) {
-        navigate("/");
+        // claim admin role for user
+        const { uid } = user.user;
+        const { data } = await AxiosInstance.post("/auth/claim-user-admin", {
+          uid,
+        });
+        if (data.result) {
+          navigate("/");
+        } else {
+          message.error("Something went wrong while claiming admin role");
+        }
       } else {
         message.error("There was an error creating your account!");
       }

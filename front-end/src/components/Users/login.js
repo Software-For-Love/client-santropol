@@ -25,18 +25,20 @@ const NormalLoginForm = () => {
 
   const onFinish = async (values) => {
     setLoading(true);
-    await setPersistence(
-      auth,
-      values.remember ? browserLocalPersistence : browserSessionPersistence
-    ); // automatically logs in the user or asks for email and password
-    const user = await signInWithEmailAndPassword(
-      auth,
-      values.email,
-      values.password
-    );
-    if (user) {
-      navigate("/kitchen-am");
-    } else {
+    try {
+      await setPersistence(
+        auth,
+        values.remember ? browserLocalPersistence : browserSessionPersistence
+      ); // automatically logs in the user or asks for email and password
+      const user = await signInWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
+      if (user) {
+        navigate("/kitchen-am");
+      }
+    } catch (error) {
       message.error("Invalid email or password");
     }
     setLoading(false);
