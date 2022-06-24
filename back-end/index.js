@@ -1,10 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const {
-  initializeApp,
-  applicationDefault,
-  cert,
-} = require("firebase-admin/app");
+const { initializeApp, cert } = require("firebase-admin/app");
 const firebase = require("firebase/app");
 const app = express();
 const port = process.env.PORT || 5000;
@@ -13,6 +9,7 @@ const authRouter = require("./routes/authRouter");
 const eventRouter = require("./routes/eventRoutes");
 const verifyToken = require("./middlewares/verifyToken");
 const cors = require("cors");
+const serviceAccount = require("./adminCredentials.json");
 const firebaseConfig = {
   apiKey: process.env.NODE_APP_API_KEY,
   authDomain: process.env.NODE_APP_AUTH_DOMAIN,
@@ -23,7 +20,9 @@ const firebaseConfig = {
   measurementId: process.env.NODE_APP_MEAUSERMENT_ID,
 };
 
-initializeApp(firebaseConfig);
+initializeApp({
+  credential: cert(serviceAccount),
+});
 firebase.initializeApp(firebaseConfig);
 
 app.use(express.json());
