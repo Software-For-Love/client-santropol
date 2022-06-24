@@ -1,5 +1,6 @@
 import axios from "axios";
 import { backendServer } from "../environment";
+import { getAuth, getIdToken } from "firebase/auth";
 
 // Add a request interceptor
 const AxiosInstance = axios.create({
@@ -16,13 +17,15 @@ const AxiosInstance = axios.create({
 
 AxiosInstance.interceptors.request.use(
   async (config) => {
-    // const idToken = await firebase.auth().currentUser?.getIdToken();
-    // if (config.headers === undefined) {
-    //   config.headers = {};
-    // }
-    // if (idToken) {
-    //   config.headers.Authorization = idToken;
-    // }
+    const auth = getAuth();
+    const { currentUser } = auth;
+    if (config.headers === undefined) {
+      config.headers = {};
+    }
+    if (currentUser) {
+      const token = await getIdToken(currentUser, true);
+      config.headers.Authorization = token;
+    }
     return config;
   },
   (error) => {
