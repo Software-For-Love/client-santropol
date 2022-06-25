@@ -11,7 +11,6 @@ const {
   query,
   where,
 } = require("firebase/firestore");
-const db = getFirestore();
  
 /**
  *  Request to get events for the current week optional paramater is the date selected.
@@ -236,21 +235,23 @@ eventRouter.post("/editEvent", async (req, res) => {
   event_status -> completed or cancelled
 */
 function mockAuth(req,res,next){ //There would be an actual auth check to verify the token sent
-  if(req.body.role = 'staff'){
-    res.locals.uid = req.body.uid;
+  if(req.body.role == 'staff'){
+    res.locals.uid = req.params.uid;
     next();
   } else {
-    return res.status(401).json({error: "Not staff"});
+   res.status(401).json({error: "Not staff"});
   }
 }
 eventRouter.get('/getEvents/:uid', [mockAuth], (req, res)=> {
   const acceptedEventStates = ["completed", "cancelled"];
   //Temp pass in staff or volunteer type in req, DO NOT LEAVE AS LONG TERM SOLUTION
   if (res.locals.uid){
-    if(req.query.event_status == "completed"){
+    const db = getFirestore();
+    if(req.query.event_status in acceptedEventStates){
       const q = query(
-        collection(db, "event" ),
-        where("completed", "==", true)
+        collection(db, "past_events" ),
+        where(req.query.event_status, "==", true),
+        where("uid", "==", req.params.uid)
         )
       getDocs(q).then((querySnapshot) => {
         let results = [];
@@ -259,10 +260,11 @@ eventRouter.get('/getEvents/:uid', [mockAuth], (req, res)=> {
         })
 
         res.status(200).json({result: results});
-      })
+      }).catch(err => res.status(400).json({result: err}))
 
     }
   }
+ 
   
 })
 
