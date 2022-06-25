@@ -1,24 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../../Contexts/AuthContext";
 import { Form, Input, Checkbox, message, Button as AntdButton } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
-import "antd/dist/antd.css";
 import "../../App.css";
 import { Link } from "react-router-dom";
 import logo from "../../santropol.svg";
 import Button from "../Button";
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  setPersistence,
-  browserLocalPersistence,
-  browserSessionPersistence,
-} from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { ResetPasswordOverlay } from "../Modal/index";
 
 const NormalLoginForm = () => {
   const auth = getAuth();
-  const navigate = useNavigate();
+  const { setIsLoggedIn } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [passwordResetModalVisible, setPasswordResetModalVisible] =
     useState(false);
@@ -26,17 +19,19 @@ const NormalLoginForm = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      await setPersistence(
-        auth,
-        values.remember ? browserLocalPersistence : browserSessionPersistence
-      ); // automatically logs in the user or asks for email and password
+      // automatically logs in the user or asks for email and password
       const user = await signInWithEmailAndPassword(
         auth,
         values.email,
         values.password
       );
       if (user) {
-        navigate("/kitchen-am");
+        if (values.remember) {
+          localStorage.setItem("remember", "true");
+        } else {
+          sessionStorage.setItem("remember", "true");
+        }
+        setIsLoggedIn(true);
       }
     } catch (error) {
       message.error("Invalid email or password");
