@@ -11,7 +11,8 @@ const {
   query,
   where,
 } = require("firebase/firestore");
-
+const db = getFirestore();
+ 
 /**
  *  Request to get events for the current week optional paramater is the date selected.
  *
@@ -224,5 +225,45 @@ eventRouter.post("/editEvent", async (req, res) => {
 
   //get all the events for the current week
 });
+
+/*Request to get events depending on a user.
+  Can include query parameters to get completed or cancelled events. 
+  This route is accessible by ALL staff
+  route parameters: 
+  userId
+
+  query parameters:
+  event_status -> completed or cancelled
+*/
+function mockAuth(req,res,next){ //There would be an actual auth check to verify the token sent
+  if(req.body.role = 'staff'){
+    res.locals.uid = req.body.uid;
+    next();
+  } else {
+    return res.status(401).json({error: "Not staff"});
+  }
+}
+eventRouter.get('/getEvents/:uid', [mockAuth], (req, res)=> {
+  const acceptedEventStates = ["completed", "cancelled"];
+  //Temp pass in staff or volunteer type in req, DO NOT LEAVE AS LONG TERM SOLUTION
+  if (res.locals.uid){
+    if(req.query.event_status == "completed"){
+      const q = query(
+        collection(db, "event" ),
+        where("completed", "==", true)
+        )
+      getDocs(q).then((querySnapshot) => {
+        let results = [];
+        querySnapshot.docs.forEach(doc => {
+          results.push(doc.data());
+        })
+
+        res.status(200).json({result: results});
+      })
+
+    }
+  }
+  
+})
 
 module.exports = eventRouter;
