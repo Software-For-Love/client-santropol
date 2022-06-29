@@ -59,6 +59,7 @@ const AuthProvider = (props) => {
         user,
         userDataLoading,
         userType,
+        setUserType,
       }}
     >
       {props.children}

@@ -1,62 +1,87 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import "antd/dist/antd.css";
-import "../../App.css";
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../../Contexts/AuthContext";
+import { Link } from "react-router-dom";
 import logo from "../../santropol.svg";
 import Button from "../Button";
 import AxiosInstance from "../../API/api";
-import { Form, Input, message } from "antd";
+import { Form, Input, Alert } from "antd";
 import { UserOutlined } from "@ant-design/icons";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 import { getAuth } from "firebase/auth";
+import convertFirebaseErrorCodeToMessage from "../../utils/convertFirebaseErrorCodeToMessage";
 
 const RegistrationForm = () => {
   const auth = getAuth();
-  const navigate = useNavigate();
+  const { setIsLoggedIn } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const onFinish = async (values) => {
     setLoading(true);
-    if (values.email.split("@")[1] === "softwareforlove.com") {
-      const user = await createUserWithEmailAndPassword(
-        auth,
-        values.email,
-        values.password
-      );
-      if (user) {
-        // claim admin role for user
-        const { uid } = user.user;
-        const { data } = await AxiosInstance.post("/auth/claim-user-admin", {
-          uid,
-        });
-        if (data.result) {
-          navigate("/");
-        } else {
-          message.error("Something went wrong while claiming admin role");
-        }
+    let success = false;
+    const { email, password, remember } = values;
+    const emailDomain = email.split("@")[1];
+    try {
+      // if the email ends with softwareforlove.com, create a user without checking airtable for testing purposes.
+      if (emailDomain === "softwareforlove.com") {
+        await createUserWithEmailAndPassword(auth, email, password);
       } else {
-        message.error("There was an error creating your account!");
-      }
-    } else {
-      try {
+        // check if the email is in airtable.
         const { data } = await AxiosInstance.post(`auth/register`, {
-          email: values.email,
+          email,
         });
-        if (data.result) {
-          await createUserWithEmailAndPassword(
-            auth,
-            values.username,
-            values.password
-          );
-          navigate("/");
-        } else {
-          message.error("User not found!");
-        }
-      } catch (error) {
-        message.error("Something went wrong!");
-      }
-    }
 
+        if (!data.result) {
+          setError("Email is not in the database.");
+          setLoading(false);
+          return;
+        }
+
+        // at this point we know the user is in the airtable
+        if (emailDomain === "santropolroulant.org") {
+          // if the email is from santropolroulant.org, make them an admin
+          const response = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          // set the user as an admin
+          const { data } = await AxiosInstance.post("/auth/claim-user-admin", {
+            uid: response.user.uid,
+          });
+          if (data.result) {
+            setIsAdmin(true);
+          }
+        } else {
+          // volunteer user
+          createUserWithEmailAndPassword(auth, email, password);
+        }
+      }
+      success = true;
+    } catch (error) {
+      setError(
+        error.code
+          ? convertFirebaseErrorCodeToMessage(error.code)
+          : "Something went wrong"
+      );
+    }
+    if (success) {
+      if (remember) {
+        localStorage.setItem("remember", "true");
+      } else {
+        sessionStorage.setItem("remember", "true");
+      }
+      if (isAdmin) {
+        signOut(auth);
+        signInWithEmailAndPassword(auth, email, password);
+      }
+      setIsLoggedIn(true);
+    }
     setLoading(false);
   };
 
@@ -125,6 +150,20 @@ const RegistrationForm = () => {
         >
           <Input.Password />
         </Form.Item>
+        {error && (
+          <Alert
+            style={{
+              marginBottom: "10px",
+              marginTop: "-10px",
+            }}
+            message={error}
+            type="error"
+            closable
+            onClose={() => {
+              setError(null);
+            }}
+          />
+        )}
         <Form.Item>
           <Button style={{ width: "100%" }} htmlType="submit" loading={loading}>
             Register
