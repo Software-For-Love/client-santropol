@@ -11,7 +11,9 @@ const {
   query,
   where,
 } = require("firebase/firestore");
- 
+const {getAuth, } = require("firebase/auth")
+const acceptedEventStates = ["completed", "cancelled"];
+
 /**
  *  Request to get events for the current week optional paramater is the date selected.
  *
@@ -225,6 +227,8 @@ eventRouter.post("/editEvent", async (req, res) => {
   //get all the events for the current week
 });
 
+eventRouter.delete("/")
+
 /*Request to get events depending on a user.
   Can include query parameters to get completed or cancelled events. 
   This route is accessible by ALL staff
@@ -236,36 +240,53 @@ eventRouter.post("/editEvent", async (req, res) => {
 */
 function mockAuth(req,res,next){ //There would be an actual auth check to verify the token sent
   if(req.body.role == 'staff'){
-    res.locals.uid = req.params.uid;
+    req.user = {};
+    req.user.uid = 'gr5146032532';
     next();
   } else {
    res.status(401).json({error: "Not staff"});
   }
 }
-eventRouter.get('/getEvents/:uid', [mockAuth], (req, res)=> {
-  const acceptedEventStates = ["completed", "cancelled"];
+eventRouter.get('/getUserEvents/', [mockAuth],  (req, res)=> {
   //Temp pass in staff or volunteer type in req, DO NOT LEAVE AS LONG TERM SOLUTION
-  if (res.locals.uid){
+  if (req.user.uid){
     const db = getFirestore();
-    if(req.query.event_status in acceptedEventStates){
+    if(req.query.event_status == "cancelled"){
+      const q = query(
+        collection(db, "user_cancelled_events" ),
+        where("uid", "==", req.user.uid)
+        );
+        getDocsWrapper(q, res);
+    } 
+    else if (req.query.event_status == "completed"){
       const q = query(
         collection(db, "past_events" ),
-        where(req.query.event_status, "==", true),
-        where("uid", "==", req.params.uid)
-        )
-      getDocs(q).then((querySnapshot) => {
-        let results = [];
-        querySnapshot.docs.forEach(doc => {
-          results.push(doc.data());
-        })
-
-        res.status(200).json({result: results});
-      }).catch(err => res.status(400).json({result: err}))
-
+        // where(req.query.event_status, "==", true),
+        where("uid", "==", req.user.uid)
+        );
+      getDocsWrapper(q, res);
+    }
+    else{
+      const q = query(
+        collection(db, "past_events" ),
+        where("uid", "==", req.user.uid)
+        );
+      getDocsWrapper(q, res);
     }
   }
- 
-  
 })
+
+
+function getDocsWrapper(query, res){
+  return getDocs(query).then((querySnapshot) => {
+    let counter = 0;
+    let results = [];
+    querySnapshot.docs.forEach(doc => {
+      results.push(doc.data());
+    })
+    res.status(200).json({result: results});
+  }).catch(err => res.status(400).json({result: err}))
+}
+
 
 module.exports = eventRouter;
