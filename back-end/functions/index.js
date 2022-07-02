@@ -112,8 +112,8 @@ async function fillRecurringEvents(newEvent, item, futureStartingDate){
 
 function createEvent(item){
   let event = new Event();
-  event.setTimeEnd = Event.event_times[item.data().event_type]["normal_shift"].time_end;
-  event.setTimeStart = Event.event_times[item.data().event_type]["normal_shift"].time_start;
+  event.setTimeEnd = Event.eventTimes[item.data().event_type]["normal_shift"].time_end;
+  event.setTimeStart = Event.eventTimes[item.data().event_type]["normal_shift"].time_start;
   event.setEventType = item.data().event_type;
   event.setFirstName = item.data().first_name;
   event.setKey = "nan"; /// Not sure

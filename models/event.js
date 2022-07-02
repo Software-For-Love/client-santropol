@@ -1,5 +1,5 @@
 class Event {
-  static event_times = {
+  static eventTimes = {
       deldr: {
         first_shift: {
           time_start: "14:15",
@@ -23,6 +23,7 @@ class Event {
         }
       }
     }
+
   constructor(){
       this.event_date = "";
       this.event_date_txt = "";
