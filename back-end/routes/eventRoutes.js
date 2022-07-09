@@ -227,7 +227,14 @@ eventRouter.post("/editEvent", async (req, res) => {
   //get all the events for the current week
 });
 
-eventRouter.delete("/")
+
+/*
+  Remove a user from their assigned event
+  Copy the event to the user_cancelled_event location in the db in order to keep track of user cancelled events
+*/
+eventRouter.post("/removeUserFromEvent", (req, res) => {
+  
+})
 
 /*Request to get events depending on a user.
   Can include query parameters to get completed or cancelled events. 
