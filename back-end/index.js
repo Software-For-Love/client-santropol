@@ -9,7 +9,6 @@ const authRouter = require("./routes/authRouter");
 const eventRouter = require("./routes/eventRoutes");
 const verifyToken = require("./middlewares/verifyToken");
 const cors = require("cors");
-const serviceAccount = require("./adminCredentials.json");
 const firebaseConfig = {
   apiKey: process.env.NODE_APP_API_KEY,
   authDomain: process.env.NODE_APP_AUTH_DOMAIN,
@@ -20,8 +19,21 @@ const firebaseConfig = {
   measurementId: process.env.NODE_APP_MEAUSERMENT_ID,
 };
 
+const adminConfig = {
+  type: process.env.ADMIN_ACC_TYPE,
+  project_id: process.env.NODE_APP_PROJECT_ID,
+  private_key_id: process.env.ADMIN_PRIVATE_KEY_ID,
+  private_key: process.env.ADMIN_PRIVATE_KEY,
+  client_email: process.env.ADMIN_CLIENT_EMAIL,
+  client_id: process.env.ADMIN_CLIENT_ID,
+  auth_uri: process.env.ADMIN_AUTH_URI,
+  token_uri: process.env.ADMIN_TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.ADMIN_AUTH_PROVIDER_CERTL_URL,
+  client_x509_cert_url: process.env.ADMIN_CLIENT_CERT_URL,
+};
+
 initializeApp({
-  credential: cert(serviceAccount),
+  credential: cert(adminConfig),
 });
 firebase.initializeApp(firebaseConfig);
 
