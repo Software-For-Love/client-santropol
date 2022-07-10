@@ -8,7 +8,7 @@ import AxiosInstance from "../../API/api";
 import { Form, Input, message } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { getAuth } from "firebase/auth";
+import { getAuth,updateProfile  } from "firebase/auth";
 
 const RegistrationForm = () => {
   const auth = getAuth();
@@ -38,7 +38,18 @@ const RegistrationForm = () => {
             auth,
             values.username,
             values.password
-          );
+          ).then((userCredential) => {
+            // Signed in 
+            const user = userCredential.user;
+            updateProfile(user, {
+              displayName: data.fullName
+            });
+            // ...
+          })
+          .catch((error) => {
+            
+            // ..
+          });;
           navigate("/");
         } else {
           message.error("User not found!");
