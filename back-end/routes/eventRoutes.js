@@ -10,10 +10,12 @@ const {
   collection,
   query,
   where,
+  addDoc,
 } = require("firebase/firestore");
 const {getAuth, } = require("firebase/auth")
 const acceptedEventStates = ["completed", "cancelled"];
-
+const { Event } = require("../../models/event");
+const {deliveryEvent} = require("../../models/deliveryEvent")
 /**
  *  Request to get events for the current week optional paramater is the date selected.
  *
@@ -228,71 +230,125 @@ eventRouter.post("/editEvent", async (req, res) => {
 });
 
 
-/*
+/** 
+ * @description:
   Remove a user from their assigned event
   Copy the event to the user_cancelled_event location in the db in order to keep track of user cancelled events
-*/
-eventRouter.post("/removeUserFromEvent", (req, res) => {
   
+  @req
+  @param key : The key of the unique event in firestore that is having the current user removed
+
+*/
+eventRouter.post("/removeUserFromEvent", async (req, res) => {
+  
+
+  if(req.body.role == "volunteer" && moment(req.body.event_date).date() - moment().date() < 2) { 
+    res.status(403).json({result: "Not allowed to remove less than 2 days before event"});
+  } 
+  else {
+    db = getFirestore()
+    q = query(db,
+      where("key", "==", req.body.key)
+    )
+    let event;
+    try{
+      event = await getDocsWrapper(q,res)[0];
+      if(!event.uid){
+        res.status(405).json({sucess: false, result: "No uid in event"})
+      }
+      else if(res.status != 400){
+        // if(doc.getEventType == "deldr"){
+        //   eventMetadata = deliveryEvent(event);
+        // } 
+        // else {
+        //   eveventMetadata = Event(event);
+        // }
+        await updateDoc(event.ref, {"uid": ""});
+        await addDoc(collection(db, "user_cancelled_events"), event.data());
+        res.status(200).json({success: true});
+      }
+    } catch(e){
+      res.status(400).json({success: false, result: err});
+    }
+  }
 })
 
-/*Request to get events depending on a user.
+
+
+
+
+
+
+function mockStaffAuth(req,res,next){ //There would be an actual auth check to see if 
+  if(req.body.role == 'staff'){
+    req.user = {};
+    req.body.uid = 'gr5146032532';
+    next();
+  } else {
+   res.status(401).json({success: false, error: "Not staff"});
+  }
+}
+
+/** 
+ * @description:
+  Request to get events depending on a user.
   Can include query parameters to get completed or cancelled events. 
-  This route is accessible by ALL staff
+  This route is accessible by ALL staff, not by any volunteers
   route parameters: 
   userId
 
-  query parameters:
+  
+* @queryParameters
   event_status -> completed or cancelled
 */
-function mockAuth(req,res,next){ //There would be an actual auth check to verify the token sent
-  if(req.body.role == 'staff'){
-    req.user = {};
-    req.user.uid = 'gr5146032532';
-    next();
-  } else {
-   res.status(401).json({error: "Not staff"});
-  }
-}
-eventRouter.get('/getUserEvents/', [mockAuth],  (req, res)=> {
+eventRouter.get('/getUserPastEvents/',  (req, res)=> {
   //Temp pass in staff or volunteer type in req, DO NOT LEAVE AS LONG TERM SOLUTION
-  if (req.user.uid){
+  if (req.body.uid && req.user.role == "staff"){
     const db = getFirestore();
-    if(req.query.event_status == "cancelled"){
+    if(req.query.event_status == acceptedEventStates[1]){
       const q = query(
         collection(db, "user_cancelled_events" ),
-        where("uid", "==", req.user.uid)
+        where("uid", "==", req.body.uid)
         );
-        getDocsWrapper(q, res);
+      getDocsWrapper(q).then(results => res.status(200).json({result: results}))
+      .catch(err => res.status(400).json({success: false, result: err}));
     } 
-    else if (req.query.event_status == "completed"){
+    else if (req.query.event_status == acceptedEventStates[0]){
       const q = query(
         collection(db, "past_events" ),
         // where(req.query.event_status, "==", true),
-        where("uid", "==", req.user.uid)
+        where("uid", "==", req.body.uid)
         );
-      getDocsWrapper(q, res);
+      getDocsWrapper(q).then(results => res.status(200).json({result: results}))
+      .catch(err => res.status(400).json({success: false, result: err}));
     }
     else{
       const q = query(
         collection(db, "past_events" ),
-        where("uid", "==", req.user.uid)
+        where("uid", "==", req.body.uid)
         );
-      getDocsWrapper(q, res);
+      getDocsWrapper(q).then(results => res.status(200).json({result: results}))
+        .catch(err => res.status(400).json({success: false, result: err}));
     }
+  }
+  else if (req.body.uid) {
+
   }
 })
 
 
-function getDocsWrapper(query, res){
+function getDocsWrapper(query){
   return getDocs(query).then((querySnapshot) => {
     let counter = 0;
     let results = [];
+    let extraDocInfo = [];
     querySnapshot.docs.forEach(doc => {
-      results.push(doc.data());
+      results.push(doc);
+      extraDocInfo.push({"ref":doc.ref});
     })
-    res.status(200).json({result: results});
-  }).catch(err => res.status(400).json({result: err}))
+    return results;
+    // res.status(200).json({result: results});
+  }).catch(err => {throw new Error(err)});  //catch(err => res.status(400).json({success: false, result: err}))
 }
 
 
