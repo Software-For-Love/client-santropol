@@ -2,6 +2,8 @@ const { Event } = require("./event");
 
  class DeliveryEvent extends Event {
 
+    static deliveryTypes = ["foot", "bike", "own car", "sr car"];
+
     //A  coded version of downcasting, but for JS
     constructor(eventObj){ 
         super();
