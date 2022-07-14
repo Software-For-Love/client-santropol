@@ -11,7 +11,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { getAuth } from "firebase/auth";
+import { getAuth, updateProfile } from "firebase/auth";
 import convertFirebaseErrorCodeToMessage from "../../utils/convertFirebaseErrorCodeToMessage";
 
 const RegistrationForm = () => {
@@ -29,37 +29,57 @@ const RegistrationForm = () => {
     try {
       // if the email ends with softwareforlove.com, create a user without checking airtable for testing purposes.
       if (emailDomain === "softwareforlove.com") {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredentials = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+        await updateProfile(userCredentials.user, {
+          displayName: "SFL Test User",
+        });
       } else {
         // check if the email is in airtable.
-        const { data } = await AxiosInstance.post(`auth/register`, {
+        const airtableInfo = await AxiosInstance.post(`auth/register`, {
           email,
         });
 
-        if (!data.result) {
+        if (!airtableInfo.data.result) {
           setError("Email is not in the database.");
           setLoading(false);
           return;
         }
 
+        const { displayName } = airtableInfo.data;
+
         // at this point we know the user is in the airtable
         if (emailDomain === "santropolroulant.org") {
           // if the email is from santropolroulant.org, make them an admin
-          const response = await createUserWithEmailAndPassword(
+          const userCredentials = await createUserWithEmailAndPassword(
             auth,
             email,
             password
           );
           // set the user as an admin
           const { data } = await AxiosInstance.post("/auth/claim-user-admin", {
-            uid: response.user.uid,
+            uid: userCredentials.user.uid,
+          });
+          await updateProfile(userCredentials.user, {
+            displayName,
           });
           if (data.result) {
             setIsAdmin(true);
           }
         } else {
           // volunteer user
-          createUserWithEmailAndPassword(auth, email, password);
+          const userCredentials = createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          await updateProfile(userCredentials.user, {
+            displayName,
+          });
         }
       }
       success = true;
@@ -77,6 +97,7 @@ const RegistrationForm = () => {
         sessionStorage.setItem("remember", "true");
       }
       if (isAdmin) {
+        // we need to signOut and signIn again to get the admin claim
         signOut(auth);
         signInWithEmailAndPassword(auth, email, password);
       }

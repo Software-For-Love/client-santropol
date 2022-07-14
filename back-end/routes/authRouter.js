@@ -15,7 +15,7 @@ authRouter.post("/register", async (req, res) => {
 
   airTableBase("👥 Volunteers")
     .select({
-      fields: ["Courriel"],
+      fields: ["Courriel", "full name (auto)"],
       filterByFormula: `({Courriel}=\"${email}\")`,
     })
     .eachPage(
@@ -23,7 +23,10 @@ authRouter.post("/register", async (req, res) => {
         try {
           if (records.length > 0) {
             records.forEach(function () {
-              res.json({ result: true });
+              const record = records[0];
+              const displayName = record.get("full name (auto)");
+
+              res.json({ result: true, displayName });
             });
           } else {
             res.json({ result: false });

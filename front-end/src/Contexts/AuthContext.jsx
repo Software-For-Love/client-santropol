@@ -30,7 +30,7 @@ const AuthProvider = (props) => {
   auth.currentUser
     ?.getIdTokenResult()
     .then((idTokenResult) => {
-      // Confirm the user is an Admin.
+      // Check if the user is an Admin.
       if (!!idTokenResult.claims.admin) {
         // Show admin UI.
         setUserType("admin");
