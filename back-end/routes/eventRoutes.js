@@ -11,6 +11,7 @@ const {
   query,
   where,
   addDoc,
+  getDoc
 } = require("firebase/firestore");
 const { getAuth } = require("firebase/auth");
 const acceptedEventStates = ["completed", "cancelled"];
@@ -234,41 +235,48 @@ eventRouter.post("/editEvent", async (req, res) => {
   Remove a user from their assigned event
   Copy the event to the user_cancelled_event location in the db in order to keep track of user cancelled events
   
-  @param event_date: Date of the event that is being modified
   @param key: The key of the unique event in firestore that is having the current user removed
+  @param role: Role of the user making the request -> volunteer or staff
+  @param uid:
+  @param reason: The reason for the cancellation
+  Optional bodyParam:
+  @param  doc_name Optional if the key of an object isn't set
 
 */
 eventRouter.post("/removeUserFromEvent", async (req, res) => {
-  if (
-    req.body.role == "volunteer" && moment(req.body.event_date).date() - moment().date() < 2) 
-  {
-    res
-      .status(403)
-      .json({ result: "Not allowed to remove less than 2 days before event, contact staff" });
-  } else {
-    db = getFirestore();
-    q = query(db, where("key", "==", req.body.key));
-    let event;
-    try {
-      event = await getDocsWrapper(q, res)[0];
-      if (!event.uid) {
-        res.status(405).json({ sucess: false, result: "No uid in event" });
-      } 
-      else {
-        // if(doc.getEventType == "deldr"){
-        //   eventMetadata = deliveryEvent(event);
-        // }
-        // else {
-        //   eveventMetadata = Event(event);
-        // }
-        await updateDoc(event.ref, { uid: "" });
-        await addDoc(collection(db, "user_cancelled_events"), event.data());
-        res.status(200).json({ success: true });
-      }
-    } catch (e) {
-      res.status(400).json({ success: false, result: err });
-    }
+  let db = getFirestore();
+  let eventCollectionRef = collection(db, "event");
+  let q;
+  let event;
+  // try {
+  if(req.body.key && req.body.role){
+    q = query(eventCollectionRef,where("key", "==", req.body.key));
+    event = (await getDocsWrapper(q))[0];
   }
+  else if(req.body.docName && req.body.role) {
+    q = doc(db, "event", req.body.doc_name);
+    event = await getDocWrapper(q);
+  }
+  else {
+    res.status(400).json({success: false, result: "No valid body parameters"})
+  }
+
+  if (!event) {
+    res.status(404).json({success: false, result: "No returned values"});
+  }
+  //Can only remove as a volunteer if greater than 2 days away, considered cancelled
+  if (req.body.role == "volunteer" && (event.event_date - getDateNumber(new Date()) < 2 || req.body.uid != req.user.uid)) {
+    res.status(403).json({ success: false, result: "Not allowed to remove, contact staff" });
+  } 
+  else {
+    await updateDoc(event.ref, { uid: "" });
+    await addDoc(collection(db, "user_cancelled_event"), {event_id: event.id, uid: req.body.uid, reason: req.body.reason });
+    res.status(200).json({ success: true });
+  }
+  // } catch (e) {
+  // res.status(400).json({ success: false, result: e });
+  // }
+
 });
 
 
@@ -280,13 +288,13 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
 * 
 * @BodyParameters
 * @param uid    The user ID whose past events are in question
-*  @param role   The role of the current user making the request (SHOULD be part of user object that is already propogated throughout server)
+*  @param role   The role of the current user making the request (SHOULD also be added to user object in db)
 *
 * 
 * @queryParameters
 * @param event_status   Values -> completed or cancelled
 */
-eventRouter.get("/getUserPastEvents/", (req, res) => {
+eventRouter.get("/getUserPastEvents", async (req, res) => {
   let q;
   //Checking if user is staff, or if volunteer, then that person ONLY accessing their own data
   if (req.body.uid && (req.body.role == "staff" || req.body.uid == req.user.uid)) {
@@ -332,10 +340,12 @@ eventRouter.get("/getUserPastEvents/", (req, res) => {
 });
 
 function getDocsWrapper(query) {
+  console.log(query);
   return getDocs(query)
     .then((querySnapshot) => {
       let counter = 0;
       let results = [];
+      console.log("in wrapper");
       querySnapshot.docs.forEach((doc) => {
         results.push(doc);
       });
@@ -345,6 +355,46 @@ function getDocsWrapper(query) {
     .catch((err) => {
       throw new Error(err);
     }); //catch(err => res.status(400).json({success: false, result: err}))
+}
+
+function getDocWrapper(docRef){
+  return getDoc(docRef).then((docSnapshot) => {
+    return docSnapshot;
+  }
+  ).catch(err => {
+    throw new Error(err);
+  })
+}
+
+
+function docWrapperSelection(query){
+  if(query.type == "query" || query.type == "collection"){
+    return getDocsWrapper(query);
+  }
+  else {
+    return getDocWrapper(query);
+  }
+}
+
+
+function getDateNumber(date) {
+  let month = "";
+  let day = "";
+  if (date.getMonth() + 1 < 10) {
+    month = "0" + (date.getMonth() + 1).toString();
+  }
+  else {
+    month = (date.getMonth() + 1).toString();
+  }
+  if (date.getDate() < 10) {
+    day = "0" + date.getDate().toString();
+  }
+  else {
+    day = date.getDate().toString();
+  }
+  let dateString = (date.getFullYear().toString()).substring(2, 4) + month + day;
+  let intDate = +dateString;
+  return intDate;
 }
 
 module.exports = eventRouter;
