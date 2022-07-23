@@ -6,6 +6,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 const indexRouter = require("./routes/routes");
 const authRouter = require("./routes/authRouter");
+const userRouter = require("./routes/userRoutes");
 const eventRouter = require("./routes/eventRoutes");
 const verifyToken = require("./middlewares/verifyToken");
 const cors = require("cors");
@@ -44,6 +45,7 @@ app.use(verifyToken);
 
 app.use("/", indexRouter);
 app.use("/auth", authRouter);
+app.use("/user", userRouter);
 app.use("/events", eventRouter);
 
 app.use("/", indexRouter);

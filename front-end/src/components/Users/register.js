@@ -61,7 +61,7 @@ const RegistrationForm = () => {
             password
           );
           // set the user as an admin
-          const { data } = await AxiosInstance.post("/auth/claim-user-admin", {
+          const { data } = await AxiosInstance.post("/user/claim-user-admin", {
             uid: userCredentials.user.uid,
           });
           await updateProfile(userCredentials.user, {
