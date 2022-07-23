@@ -266,7 +266,7 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
     res.status(404).json({success: false, result: "No returned values"});
   }
   //Can only remove as a volunteer if greater than 2 days away, considered cancelled
-  else if (req.body.role == "volunteer" && (event.data().event_date - getDateNumber(new Date()) < 2 || req.body.uid != req.body.user.uid)) {
+  else if (req.body.role == "volunteer" && (event.data().event_date - getDateNumber(new Date()) < 2 || req.body.uid != req.user.uid)) {
     res.status(403).json({ success: false, result: "Not allowed to remove, contact staff" });
   } 
   else {
@@ -299,7 +299,7 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
 eventRouter.get("/getUserPastEvents", async (req, res) => {
   let q;
   //Checking if user is staff, or if volunteer, then that person ONLY accessing their own data
-  if (req.body.uid && (req.body.role == "staff" || req.body.role == "admin" || req.body.uid == req.body.uid)) {
+  if (req.body.uid && (req.body.role == "staff" || req.body.role == "admin" || req.body.uid == req.user.uid)) {
     const db = getFirestore();
     if (req.query.event_status == acceptedEventStates[1]) {
        q = query(
