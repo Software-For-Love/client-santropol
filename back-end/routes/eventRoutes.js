@@ -184,10 +184,9 @@ eventRouter.post("/editEvent", async (req, res) => {
   
   @param key: The key of the unique event in firestore that is having the current user removed
   @param role: Role of the user making the request -> volunteer, staff, or admin
-  @param uid:
+  @param uid
   @param reason: The reason for the cancellation
   Optional bodyParam:
-  @param  doc_name Optional if the key of an object isn't set
 
 */
 eventRouter.post("/removeUserFromEvent", async (req, res) => {
@@ -199,10 +198,6 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
   if(req.body.key && req.body.role){
     q = query(eventCollectionRef,where("key", "==", req.body.key));
     event = (await getDocsWrapper(q))[0];
-  }
-  else if(req.body.doc_name && req.body.role) {
-    q = doc(db, "event", req.body.doc_name);
-    event = await getDocWrapper(q);
   }
   else {
     res.status(400).json({success: false, result: "No valid body parameters"})
@@ -256,7 +251,7 @@ eventRouter.get("/getUserPastEvents", async (req, res) => {
     } 
     else if (req.query.event_status == acceptedEventStates[0]) {
        q = query(
-        collection(db, "events"),
+        collection(db, "event"),
         where(req.query.event_status, "==", true),
         where("uid", "==", req.body.uid)
       );
@@ -265,7 +260,7 @@ eventRouter.get("/getUserPastEvents", async (req, res) => {
     } 
     else {
       q = query(
-        collection(db, "events"),
+        collection(db, "event"),
         where("uid", "==", req.body.uid)
       );
       let q2 = query(
@@ -297,15 +292,6 @@ function getDocsWrapper(query) {
     .catch((err) => {
       throw new Error(err);
     }); 
-}
-
-function getDocWrapper(docRef){
-  return getDoc(docRef).then((docSnapshot) => {
-    return docSnapshot;
-  }
-  ).catch(err => {
-    throw new Error(err);
-  })
 }
 
 
