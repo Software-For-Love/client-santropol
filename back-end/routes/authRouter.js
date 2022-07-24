@@ -1,5 +1,6 @@
 const express = require("express");
 const authRouter = express.Router();
+const admin = require("firebase-admin");
 var Airtable = require("airtable");
 
 Airtable.configure({
@@ -22,10 +23,10 @@ authRouter.post("/register", async (req, res) => {
         try {
           if (records.length > 0) {
             records.forEach(function () {
+              const record = records[0];
+              const displayName = record.get("full name (auto)");
 
-              var record = records[0]
-              var name =  record.get("full name (auto)")
-              res.json({ result: true, fullName: name});
+              res.json({ result: true, displayName });
             });
           } else {
             res.json({ result: false });
@@ -42,6 +43,19 @@ authRouter.post("/register", async (req, res) => {
         res.json({ result: false });
       }
     );
+});
+
+authRouter.post("/claim-user-admin", async (req, res) => {
+  try {
+    const uid = req.body.uid;
+    await admin.auth().setCustomUserClaims(uid, {
+      admin: true,
+    });
+    res.json({ result: true });
+  } catch (error) {
+    console.error(error);
+    res.json({ result: false });
+  }
 });
 
 module.exports = authRouter;

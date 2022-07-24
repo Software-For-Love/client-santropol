@@ -5,6 +5,7 @@ export_users
 
 # dependencies
 /node_modules
+/adminCredentials.json
 /.pnp
 .pnp.js
 

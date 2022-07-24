@@ -14,8 +14,11 @@ const AuthProvider = (props) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const rememberMe =
+        localStorage.getItem("remember") === "true" ||
+        sessionStorage.getItem("remember") === "true";
       setUser(user);
-      setIsLoggedIn(!!user);
+      setIsLoggedIn(!!user && rememberMe);
       setUserDataLoading(false);
     });
 
@@ -27,7 +30,7 @@ const AuthProvider = (props) => {
   auth.currentUser
     ?.getIdTokenResult()
     .then((idTokenResult) => {
-      // Confirm the user is an Admin.
+      // Check if the user is an Admin.
       if (!!idTokenResult.claims.admin) {
         // Show admin UI.
         setUserType("admin");
@@ -42,12 +45,22 @@ const AuthProvider = (props) => {
 
   const logout = () => {
     setIsLoggedIn(false);
+    localStorage.removeItem("remember");
+    sessionStorage.removeItem("remember");
     signOut(auth);
   };
 
   return (
     <AuthContext.Provider
-      value={{ isLoggedIn, logout, user, userDataLoading, userType }}
+      value={{
+        isLoggedIn,
+        setIsLoggedIn,
+        logout,
+        user,
+        userDataLoading,
+        userType,
+        setUserType,
+      }}
     >
       {props.children}
     </AuthContext.Provider>
