@@ -37,18 +37,28 @@ userRouter.put("/update-user-info", async (req, res) => {
         fields: ["Courriel", "full name (auto)"],
         filterByFormula: `({Courriel}=\"${email}\")`,
       })
-      .eachPage(function page(records, fetchNextPage) {
-        records.forEach(async function () {
-          const record = records[0];
-          await airTableBase("👥 Volunteers").update(record.id, {
-            Téléphone: phoneNumber,
-            Courriel: email,
-            Pronoun: pronouns,
-            "full name (auto)": name,
-          });
-          res.json({ result: true });
-        });
-      });
+      .eachPage(
+        function page(records, fetchNextPage) {
+          try {
+            records.forEach(async function () {
+              const record = records[0];
+              await airTableBase("👥 Volunteers").update(record.id, {
+                Téléphone: phoneNumber,
+                Courriel: email,
+                Pronoun: pronouns,
+                "full name (auto)": name,
+              });
+              res.json({ result: true });
+            });
+          } catch (error) {
+            res.json({ result: false });
+          }
+        },
+        function done(err) {
+          console.error(err);
+          res.json({ result: false });
+        }
+      );
   } catch (e) {
     console.error("Error updating user info ", e);
     res.json({ result: false, message: e });
