@@ -56,6 +56,7 @@ const Profile = () => {
       setPronouns(pronouns);
       message.success("Updated profile successfully");
     } catch (error) {
+      console.error(error);
       message.error("Something went wrong. Please try again.");
     }
     setSendingDate(false);
