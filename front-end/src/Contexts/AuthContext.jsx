@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { createContext, useState } from "react";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import firebaseApp from "../firebase";
+import AxiosInstance from "../API/api";
 
 const AuthContext = createContext();
 
@@ -11,6 +12,26 @@ const AuthProvider = (props) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [userType, setUserType] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState(null);
+  const [pronouns, setPronouns] = useState(null);
+  const [name, setName] = useState(null);
+  const [email, setEmail] = useState(null);
+
+  const getUserInfo = async (email) => {
+    try {
+      const { data } = await AxiosInstance.get(`/user/get-user-info`, {
+        params: {
+          email,
+        },
+      });
+      if (data.result) {
+        setPhoneNumber(data.phoneNumber);
+        setPronouns(data.pronouns);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -20,6 +41,11 @@ const AuthProvider = (props) => {
       setUser(user);
       setIsLoggedIn(!!user && rememberMe);
       setUserDataLoading(false);
+      if (user) {
+        getUserInfo(user.email);
+        setName(user.displayName);
+        setEmail(user.email);
+      }
     });
 
     return () => {
@@ -60,6 +86,14 @@ const AuthProvider = (props) => {
         userDataLoading,
         userType,
         setUserType,
+        phoneNumber,
+        pronouns,
+        name,
+        email,
+        setName,
+        setEmail,
+        setPhoneNumber,
+        setPronouns,
       }}
     >
       {props.children}
