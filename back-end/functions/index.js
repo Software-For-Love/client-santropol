@@ -15,40 +15,41 @@ const oneDayMilliseconds = 24 * 60 * 60 * 1000;
 const maxEventsPerWeek = 3;
 const numOfWeeksAhead = 3;
 
-// exports.sampleCreation = functions.https.onRequest((req, res) => {
-//   let testEvent = new Event();
-//   testEvent.setDate = 220624;
-//   testEvent.setEventType = "kitpm";
-//   testEvent.setFirstName = "carl";
-//   testEvent.setLastName = "Anthoney";
-//   testEvent.setUid = "ad121asd3";
-//   testEvent.setSlot = 1;
-//   let {...a} = testEvent;
-//   eventsRef.add(a).then(() =>{
-//       recurEventRef.add({
-//       end_date: "2022-12-01T05:00:00.000Z",
-//       event_type: "deldr",
-//       delivery_type: "car",
-//       last_name: "carl",
-//       uid: "ad121asd3",
-//       int_day_of_week: 2,
-//       first_name: "Anthoney",
-//       new_recurring_event: true
-//     })
-//     recurEventRef.add({
-//       end_date: "2022-12-01T05:00:00.000Z",
-//       event_type: "kitpm",
-//       last_name: "carl",
-//       uid: "ad121asd3",
-//       int_day_of_week: 3,
-//       first_name: "Anthoney",
-//       new_recurring_event: true
-//     })
-//   })
-// })
+exports.sampleCreation = functions.https.onRequest((req, res) => {
+  let testEvent = new Event();
+  testEvent.setDate = 220624;
+  testEvent.setEventType = "kitpm";
+  testEvent.setFirstName = "carl";
+  testEvent.setLastName = "Anthoney";
+  testEvent.setUid = "ad121asd3";
+  testEvent.setSlot = 1;
+  let {...a} = testEvent;
+  eventsRef.add(a).then(() =>{
+      recurEventRef.add({
+      end_date: "2022-12-01T05:00:00.000Z",
+      event_type: "deldr",
+      delivery_type: "car",
+      last_name: "carl",
+      uid: "ad121asd3",
+      int_day_of_week: 2,
+      first_name: "Anthoney",
+      new_recurring_event: true
+    })
+    recurEventRef.add({
+      end_date: "2022-12-01T05:00:00.000Z",
+      event_type: "kitpm",
+      last_name: "carl",
+      uid: "ad121asd3",
+      int_day_of_week: 3,
+      first_name: "Anthoney",
+      new_recurring_event: true
+    })
+  })
+})
 /**
  * Cloud function used to delete shifts that have passed and generate future shifts. To run every Sunday at 9:00 AM.
  */
+<<<<<<< HEAD
 // exports.createEvent = functions.https.onRequest(async (req,res)=> {
 exports.scheduledShiftGenerator = functions.pubsub
   .schedule("0 9 * * 0")
@@ -75,6 +76,25 @@ exports.scheduledShiftGenerator = functions.pubsub
               "couldn't set the document to false or couldn't make event"
             );
           }
+=======
+exports.createEvent = functions.https.onRequest(async (req,res)=> {
+// exports.scheduledShiftGenerator = functions.pubsub.schedule("0 9 * * 0").timeZone("America/New_York").onRun(async (context) =>{
+  console.log('creating...');
+  let recurringEvents = await recurEventRef.get();
+  for (let item of recurringEvents.docs) {
+  let futureStartDate = new Date();
+    let event = createEvent(item);
+    //If this is a new recurring event, need to setup all the future weeks. Otherwise, just add the event to the furthest future week
+    if(item.data().new_recurring_event){
+      for (let i = 0; i <= numOfWeeksAhead; i++){
+        futureStartDate = new Date();
+        futureStartDate.setTime(futureStartDate.getTime() + i * oneDayMilliseconds * 7);
+        try{
+          await fillRecurringEvents(item, futureStartDate);
+          await recurEventRef.doc(item.id).update({new_recurring_event: false});
+        } catch(err){
+          console.log("couldn't set the document to false or couldn't make event");
+>>>>>>> 1fe6f36 (successfully refactored to add unique id for event key)
         }
       } else {
         futureStartDate.setTime(
@@ -82,10 +102,20 @@ exports.scheduledShiftGenerator = functions.pubsub
         );
         await fillRecurringEvents(event, item, futureStartDate);
       }
+<<<<<<< HEAD
+=======
+
+    } 
+    else {
+      futureStartDate.setTime(futureStartDate.getTime() + numOfWeeksAhead * 7 * oneDayMilliseconds);
+      await fillRecurringEvents(item, futureStartDate);
+
+>>>>>>> 1fe6f36 (successfully refactored to add unique id for event key)
     }
   });
 
 //Typically should be sunday (starts at 0)
+<<<<<<< HEAD
 async function fillRecurringEvents(newEvent, item, futureStartingDate) {
   let newDate = new Date(futureStartingDate);
   futureStartingDate = new Date(futureStartingDate);
@@ -118,6 +148,37 @@ async function fillRecurringEvents(newEvent, item, futureStartingDate) {
     console.log("yes events exceeded" + getDateNumber(newDate));
   }
   return false;
+=======
+async function fillRecurringEvents(item, futureStartingDate){ 
+          let newDate = new Date(futureStartingDate);
+          futureStartingDate = new Date(futureStartingDate);
+          let newEvent = createEvent(item);
+  		    newDate.setTime(newDate.getTime() + item.data().int_day_of_week*oneDayMilliseconds); 
+          // let newRecurEventCondition = await checkIfNewRecurringEvent(item, newDate);
+			    let eventLimitCondition = await checkUserEventsLimit(item.data().uid,futureStartingDate.getTime());          
+          if(newDate < new Date(item.data().end_date) && eventLimitCondition) {
+            let dateNumber = getDateNumber(newDate);
+            let dateString = getDateString(newDate);
+            newEvent.setDate = dateNumber;
+            newEvent.setDateTxt = dateString;
+            if(item.data().event_type === "deldr") {
+              newEvent = new DeliveryEvent(newEvent);
+              newEvent.setDeliveryType = item.data().delivery_type;
+            }
+            try{
+              await eventsRef.doc(newEvent.getKey).create(JSON.parse(JSON.stringify(newEvent)));
+              return true;
+
+            }catch(err){
+              console.log(err);
+            }
+            
+          } 
+          else if (!eventLimitCondition) {
+            console.log("yes events exceeded" + getDateNumber(newDate));
+          }
+        return false;
+>>>>>>> 1fe6f36 (successfully refactored to add unique id for event key)
 }
 
 function createEvent(item) {
@@ -128,7 +189,7 @@ function createEvent(item) {
     Event.event_times[item.data().event_type]["normal_shift"].time_start;
   event.setEventType = item.data().event_type;
   event.setFirstName = item.data().first_name;
-  event.setKey = "nan"; /// Not sure
+  event.setKey = eventsRef.doc().id;
   event.setLastName = item.data().last_name;
   event.setNote = item.data().comment ? item.data().comment : "";
   event.setUid = item.data().uid;
