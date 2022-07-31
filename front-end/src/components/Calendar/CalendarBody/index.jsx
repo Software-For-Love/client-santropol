@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import Body, { PlusIcon } from "./styles";
 import Button from "../../Button";
 import PropTypes from "prop-types";
 import moment from "moment";
 import { Col } from "antd";
 import CalendarCell from "../CalendarCell";
+import { AuthContext } from "../../../Contexts/AuthContext";
 
 const CalendarBody = (props) => {
-  const { date, type, info, variant } = props;
+  const { userType } = useContext(AuthContext);
+  const { date, info, variant } = props;
   const startOfWeek = moment(date).startOf("week");
   const [events, setEvents] = useState([[], [], [], [], [], [], []]);
   const [buttonColors, setButtonColors] = useState([]); // each day has a button color depending on if all the events are full or not
@@ -100,13 +102,12 @@ const CalendarBody = (props) => {
             {dailyEvents.map((item, j) => (
               <CalendarCell
                 key={`cell-${i}-${j}`}
-                type={type}
                 date={day}
                 volunteerInfo={item.volunteerInfo}
                 variant={variant}
               />
             ))}
-            {type === "admin" && (
+            {userType === "admin" && (
               <PlusIcon
                 onClick={() => {
                   plusIconClickHandler(i);
@@ -122,7 +123,6 @@ const CalendarBody = (props) => {
 
 CalendarBody.propTypes = {
   date: PropTypes.object.isRequired,
-  type: PropTypes.string.isRequired,
   info: PropTypes.array,
   variant: PropTypes.string,
 };

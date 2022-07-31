@@ -1,13 +1,10 @@
-import React, { useContext } from "react";
-import { AuthContext } from "../../Contexts/AuthContext";
+import React from "react";
 import Calendar from "../../components/Calendar";
 
 const KitchenAM = () => {
-  const { userType } = useContext(AuthContext);
-
   return (
     <div>
-      <Calendar type={userType} variant="kitam" />
+      <Calendar variant="kitam" />
     </div>
   );
 };

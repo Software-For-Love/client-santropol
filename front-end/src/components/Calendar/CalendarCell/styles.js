@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-export default styled.div`
+export default styled.button`
   display: flex;
   align-items: center;
   padding-left: 10px;
@@ -10,7 +10,10 @@ export default styled.div`
   height: 52px;
   width: 100%;
   margin-top: 12px;
-  cursor: ${(props) => (props.type === "admin" ? "pointer" : "default")};
+  cursor: pointer;
+  outline: none;
+  border: none;
+  appearance: none;
   position: relative;
 `;
 

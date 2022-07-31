@@ -5,7 +5,7 @@ import Button from "../../Button";
 import Modal, { CommentTextArea } from "../styles";
 import { DELIVERY_TYPES } from "../../../constants";
 
-const DeliveryModal = ({ visible, setVisible }) => {
+const CreateDeliveryEventModal = ({ visible, setVisible }) => {
   const [value, setValue] = useState("Foot");
   const [oldEnough, setOldEnough] = useState(false);
   const [validDriversLicense, setValidDriversLicense] = useState(false);
@@ -19,15 +19,15 @@ const DeliveryModal = ({ visible, setVisible }) => {
   };
 
   const Footer = () => (
-    <Row justify='center'>
-      <Button type='primary' onClick={onClose}>
+    <Row justify="center">
+      <Button type="primary" onClick={onClose}>
         Confirm
       </Button>
     </Row>
   );
 
   const Title = () => (
-    <Row justify='center'>
+    <Row justify="center">
       <h3>Delivery</h3>
     </Row>
   );
@@ -106,9 +106,9 @@ const DeliveryModal = ({ visible, setVisible }) => {
   );
 };
 
-DeliveryModal.propTypes = {
+CreateDeliveryEventModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   setVisible: PropTypes.func.isRequired,
 };
 
-export default DeliveryModal;
+export default CreateDeliveryEventModal;

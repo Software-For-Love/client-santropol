@@ -22,6 +22,7 @@ index.propTypes = {
   isActive: PropTypes.bool,
   htmlType: PropTypes.string,
   style: PropTypes.object,
+  loading: PropTypes.bool,
 };
 
 export default index;

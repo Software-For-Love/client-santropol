@@ -1,25 +1,48 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import PropTypes from "prop-types";
 import { Row, Radio } from "antd";
 import Button from "../../Button";
 import Modal, { CommentTextArea } from "../styles";
 import { DELIVERY_TYPES } from "../../../constants";
 import moment from "moment";
+import AxiosInstance from "../../../API/api";
+import { AuthContext } from "../../../Contexts/AuthContext";
 
-const DeliveryModal = ({ visible, setVisible, type, date }) => {
-  const [value, setValue] = useState(type || "Foot");
+const CreateDeliveryEventModal = ({ visible, setVisible, date }) => {
+  const { user } = useContext(AuthContext);
+  const [value, setValue] = useState("Foot");
+  const [comment, setComment] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const onTypeOfDeliveryChange = (e) => {
     setValue(e.target.value);
   };
 
-  const onClose = () => {
+  const createEvent = async () => {
+    setLoading(true);
+    try {
+      const userNameArray = user.displayName.split(" ");
+      const firstName = userNameArray.slice(0, -1).join(" ");
+      const lastName = userNameArray[userNameArray.length - 1];
+      await AxiosInstance.post("/events/createEvent", {
+        firstName,
+        lastName,
+        eventType: "deliv",
+        userId: user.uid,
+        eventDate: moment(date.format("YYYY-MM-DD")).toDate(),
+        userComment: comment,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
+    setLoading(false);
     setVisible(false);
   };
 
   const Footer = () => (
     <Row justify="center">
-      <Button type="primary" onClick={onClose}>
+      <Button type="primary" onClick={createEvent} loading={loading}>
         Confirm
       </Button>
     </Row>
@@ -33,7 +56,7 @@ const DeliveryModal = ({ visible, setVisible, type, date }) => {
   return (
     <Modal
       visible={visible}
-      onCancel={onClose}
+      onCancel={() => setVisible(false)}
       footer={<Footer />}
       title={<Title />}
     >
@@ -61,21 +84,19 @@ const DeliveryModal = ({ visible, setVisible, type, date }) => {
           ))}
         </Radio.Group>
       </p>
-
-      <p>
-        <strong>Assign Volunteer: </strong>
-      </p>
       <b>Comments:</b>
-      <CommentTextArea />
+      <CommentTextArea
+        value={comment}
+        onChange={(event) => setComment(event.target.value)}
+      />
     </Modal>
   );
 };
 
-DeliveryModal.propTypes = {
+CreateDeliveryEventModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   setVisible: PropTypes.func.isRequired,
   date: PropTypes.object.isRequired,
-  type: PropTypes.string,
 };
 
-export default DeliveryModal;
+export default CreateDeliveryEventModal;
