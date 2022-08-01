@@ -49,34 +49,6 @@ exports.sampleCreation = functions.https.onRequest((req, res) => {
 /**
  * Cloud function used to delete shifts that have passed and generate future shifts. To run every Sunday at 9:00 AM.
  */
-<<<<<<< HEAD
-// exports.createEvent = functions.https.onRequest(async (req,res)=> {
-exports.scheduledShiftGenerator = functions.pubsub
-  .schedule("0 9 * * 0")
-  .timeZone("America/New_York")
-  .onRun(async (context) => {
-    console.log("creating...");
-    let recurringEvents = await recurEventRef.get();
-    for (let item of recurringEvents.docs) {
-      let futureStartDate = new Date();
-      let event = createEvent(item);
-      if (item.data().new_recurring_event) {
-        for (let i = 0; i <= numOfWeeksAhead; i++) {
-          futureStartDate = new Date();
-          futureStartDate.setTime(
-            futureStartDate.getTime() + i * oneDayMilliseconds * 7
-          );
-          try {
-            await fillRecurringEvents(event, item, futureStartDate);
-            await recurEventRef
-              .doc(item.id)
-              .update({ new_recurring_event: false });
-          } catch (err) {
-            console.log(
-              "couldn't set the document to false or couldn't make event"
-            );
-          }
-=======
 exports.createEvent = functions.https.onRequest(async (req,res)=> {
 // exports.scheduledShiftGenerator = functions.pubsub.schedule("0 9 * * 0").timeZone("America/New_York").onRun(async (context) =>{
   console.log('creating...');
@@ -94,61 +66,20 @@ exports.createEvent = functions.https.onRequest(async (req,res)=> {
           await recurEventRef.doc(item.id).update({new_recurring_event: false});
         } catch(err){
           console.log("couldn't set the document to false or couldn't make event");
->>>>>>> 1fe6f36 (successfully refactored to add unique id for event key)
+          return;
         }
-      } else {
-        futureStartDate.setTime(
-          futureStartDate.getTime() + numOfWeeksAhead * 7 * oneDayMilliseconds
-        );
-        await fillRecurringEvents(event, item, futureStartDate);
       }
-<<<<<<< HEAD
-=======
 
     } 
     else {
       futureStartDate.setTime(futureStartDate.getTime() + numOfWeeksAhead * 7 * oneDayMilliseconds);
       await fillRecurringEvents(item, futureStartDate);
 
->>>>>>> 1fe6f36 (successfully refactored to add unique id for event key)
     }
-  });
+  }
+});
 
 //Typically should be sunday (starts at 0)
-<<<<<<< HEAD
-async function fillRecurringEvents(newEvent, item, futureStartingDate) {
-  let newDate = new Date(futureStartingDate);
-  futureStartingDate = new Date(futureStartingDate);
-  newDate.setTime(
-    newDate.getTime() + item.data().int_day_of_week * oneDayMilliseconds
-  );
-  // let newRecurEventCondition = await checkIfNewRecurringEvent(item, newDate);
-  let eventLimitCondition = await checkUserEventsLimit(
-    item.data().uid,
-    futureStartingDate.getTime()
-  );
-  if (newDate < new Date(item.data().end_date) && eventLimitCondition) {
-    let dateNumber = getDateNumber(newDate);
-    let dateString = getDateString(newDate);
-    newEvent.setDate = dateNumber;
-    newEvent.setDateTxt = dateString;
-    if (item.data().event_type === "deldr") {
-      newEvent = new DeliveryEvent(newEvent);
-      newEvent.setDeliveryType = item.data().delivery_type;
-    }
-    try {
-      await eventsRef
-        .doc(newEvent.getDate + newEvent.getEventType + newEvent.getUid)
-        .create(JSON.parse(JSON.stringify(newEvent)));
-      return true;
-    } catch (err) {
-      console.log(err);
-    }
-  } else if (!eventLimitCondition) {
-    console.log("yes events exceeded" + getDateNumber(newDate));
-  }
-  return false;
-=======
 async function fillRecurringEvents(item, futureStartingDate){ 
           let newDate = new Date(futureStartingDate);
           futureStartingDate = new Date(futureStartingDate);
@@ -178,7 +109,6 @@ async function fillRecurringEvents(item, futureStartingDate){
             console.log("yes events exceeded" + getDateNumber(newDate));
           }
         return false;
->>>>>>> 1fe6f36 (successfully refactored to add unique id for event key)
 }
 
 function createEvent(item) {
