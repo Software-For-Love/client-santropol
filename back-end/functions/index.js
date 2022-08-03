@@ -1,8 +1,6 @@
 /* eslint-disable */
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const fs = require("fs");
-const path = require("path");
 const { Event } = require("./event");
 const { DeliveryEvent } = require("./deliveryEvent");
 const { rejects } = require("assert");
@@ -15,42 +13,42 @@ const oneDayMilliseconds = 24 * 60 * 60 * 1000;
 const maxEventsPerWeek = 3;
 const numOfWeeksAhead = 3;
 
-exports.sampleCreation = functions.https.onRequest((req, res) => {
-  let testEvent = new Event();
-  testEvent.setDate = 220624;
-  testEvent.setEventType = "kitpm";
-  testEvent.setFirstName = "carl";
-  testEvent.setLastName = "Anthoney";
-  testEvent.setUid = "ad121asd3";
-  testEvent.setSlot = 1;
-  let {...a} = testEvent;
-  eventsRef.add(a).then(() =>{
-      recurEventRef.add({
-      end_date: "2022-12-01T05:00:00.000Z",
-      event_type: "deldr",
-      delivery_type: "car",
-      last_name: "carl",
-      uid: "ad121asd3",
-      int_day_of_week: 2,
-      first_name: "Anthoney",
-      new_recurring_event: true
-    })
-    recurEventRef.add({
-      end_date: "2022-12-01T05:00:00.000Z",
-      event_type: "kitpm",
-      last_name: "carl",
-      uid: "ad121asd3",
-      int_day_of_week: 3,
-      first_name: "Anthoney",
-      new_recurring_event: true
-    })
-  })
-})
+// exports.sampleCreation = functions.https.onRequest((req, res) => {
+//   let testEvent = new Event();
+//   testEvent.setDate = 220624;
+//   testEvent.setEventType = "kitpm";
+//   testEvent.setFirstName = "carl";
+//   testEvent.setLastName = "Anthoney";
+//   testEvent.setUid = "ad121asd3";
+//   testEvent.setSlot = 1;
+//   let {...a} = testEvent;
+//   eventsRef.add(a).then(() =>{
+//       recurEventRef.add({
+//       end_date: "2022-12-01T05:00:00.000Z",
+//       event_type: "deldr",
+//       delivery_type: "car",
+//       last_name: "carl",
+//       uid: "ad121asd3",
+//       int_day_of_week: 2,
+//       first_name: "Anthoney",
+//       new_recurring_event: true
+//     })
+//     recurEventRef.add({
+//       end_date: "2022-12-01T05:00:00.000Z",
+//       event_type: "kitpm",
+//       last_name: "carl",
+//       uid: "ad121asd3",
+//       int_day_of_week: 3,
+//       first_name: "Anthoney",
+//       new_recurring_event: true
+//     })
+//   })
+// })
 /**
- * Cloud function used to delete shifts that have passed and generate future shifts. To run every Sunday at 9:00 AM.
+ * Cloud function used to generate future shifts. To run every Sunday at 9:00 AM.
  */
-exports.createEvent = functions.https.onRequest(async (req,res)=> {
-// exports.scheduledShiftGenerator = functions.pubsub.schedule("0 9 * * 0").timeZone("America/New_York").onRun(async (context) =>{
+// exports.createEvent = functions.https.onRequest(async (req,res)=> {
+exports.scheduledShiftGenerator = functions.pubsub.schedule("0 9 * * 0").timeZone("America/New_York").onRun(async (context) =>{
   console.log('creating...');
   let recurringEvents = await recurEventRef.get();
   for (let item of recurringEvents.docs) {
@@ -66,7 +64,7 @@ exports.createEvent = functions.https.onRequest(async (req,res)=> {
           await recurEventRef.doc(item.id).update({new_recurring_event: false});
         } catch(err){
           console.log("couldn't set the document to false or couldn't make event");
-          return;
+          return null;
         }
       }
 
@@ -77,9 +75,13 @@ exports.createEvent = functions.https.onRequest(async (req,res)=> {
 
     }
   }
+  return null;
 });
 
-//Typically should be sunday (starts at 0)
+
+/*Typically should be sunday (starts at 0). Pass in the recurring event object and the starting sunday of the week
+  and verify that the user has not surpassed the number of events in a week limit
+*/
 async function fillRecurringEvents(item, futureStartingDate){ 
           let newDate = new Date(futureStartingDate);
           futureStartingDate = new Date(futureStartingDate);
@@ -138,7 +140,7 @@ function getSlotNumber(eventDate, eventType) {
     } else {
       return docs.docs[0].data().slot + 1;
     }
-  });
+  })
 }
 
 //Check the number of events a user has in upcoming week. Must not exceed current limit
@@ -166,26 +168,6 @@ async function checkUserEventsLimit(userid, weekStartDate) {
 //   return result.size == 0 ? true : false;
 // }
 
-function getDates(firstDate, lastDate, freq) {
-  let validDates = [];
-
-  while (firstDate <= lastDate) {
-    //push the first Date
-    validDates.push(getDateNumber(firstDate));
-    let oneDayMilliseconds = freq * 7 * 24 * 60 * 60 * 1000;
-    firstDate.Time(firstDate.getTime() + oneDayMilliseconds);
-  }
-  if (firstDate.toDateString() == "yhi") {
-    printStrings(new Date());
-  }
-  return validDates;
-}
-
-function pad(num, size) {
-  let s = num + "";
-  while (s.length < size) s = "0" + s;
-  return s;
-}
 
 function getDateString(dateval) {
   var days = [
