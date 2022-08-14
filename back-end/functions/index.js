@@ -4,11 +4,11 @@ const admin = require("firebase-admin");
 const fs = require("fs");
 const path = require("path");
 const { Event } = require("./event");
-const { DeliveryEvent } = require("./deliveryEvent")  ;
+const { DeliveryEvent } = require("./deliveryEvent");
 const { rejects } = require("assert");
 admin.initializeApp();
 
-const firestoreService=admin.firestore();
+const firestoreService = admin.firestore();
 const eventsRef = firestoreService.collection("events");
 const recurEventRef = firestoreService.collection("recurring_events");
 const oneDayMilliseconds = 24 * 60 * 60 * 1000;
@@ -50,70 +50,82 @@ const numOfWeeksAhead = 3;
  * Cloud function used to delete shifts that have passed and generate future shifts. To run every Sunday at 9:00 AM.
  */
 // exports.createEvent = functions.https.onRequest(async (req,res)=> {
-exports.scheduledShiftGenerator = functions.pubsub.schedule("0 9 * * 0").timeZone("America/New_York").onRun((context) =>{
-  console.log('creating...');
-  let recurringEvents = await recurEventRef.get();
-  for (let item of recurringEvents.docs) {
-  let futureStartDate = new Date();
-    let event = createEvent(item);
-    if(item.data().new_recurring_event){
-      for (let i = 0; i <= numOfWeeksAhead; i++){
-        futureStartDate = new Date();
-        futureStartDate.setTime(futureStartDate.getTime() + i * oneDayMilliseconds * 7);
-        try{
-          await fillRecurringEvents(event, item, futureStartDate);
-          await recurEventRef.doc(item.id).update({new_recurring_event: false});
-        } catch(err){
-          console.log("couldn't set the document to false or couldn't make event");
+exports.scheduledShiftGenerator = functions.pubsub
+  .schedule("0 9 * * 0")
+  .timeZone("America/New_York")
+  .onRun(async (context) => {
+    console.log("creating...");
+    let recurringEvents = await recurEventRef.get();
+    for (let item of recurringEvents.docs) {
+      let futureStartDate = new Date();
+      let event = createEvent(item);
+      if (item.data().new_recurring_event) {
+        for (let i = 0; i <= numOfWeeksAhead; i++) {
+          futureStartDate = new Date();
+          futureStartDate.setTime(
+            futureStartDate.getTime() + i * oneDayMilliseconds * 7
+          );
+          try {
+            await fillRecurringEvents(event, item, futureStartDate);
+            await recurEventRef
+              .doc(item.id)
+              .update({ new_recurring_event: false });
+          } catch (err) {
+            console.log(
+              "couldn't set the document to false or couldn't make event"
+            );
+          }
         }
+      } else {
+        futureStartDate.setTime(
+          futureStartDate.getTime() + numOfWeeksAhead * 7 * oneDayMilliseconds
+        );
+        await fillRecurringEvents(event, item, futureStartDate);
       }
-
-    } 
-    else {
-      futureStartDate.setTime(futureStartDate.getTime() + numOfWeeksAhead * 7 * oneDayMilliseconds);
-      await fillRecurringEvents(event, item, futureStartDate);
-
     }
-  }
-});
-
+  });
 
 //Typically should be sunday (starts at 0)
-async function fillRecurringEvents(newEvent, item, futureStartingDate){ 
-          let newDate = new Date(futureStartingDate);
-          futureStartingDate = new Date(futureStartingDate);
-  		    newDate.setTime(newDate.getTime() + item.data().int_day_of_week*oneDayMilliseconds); 
-          // let newRecurEventCondition = await checkIfNewRecurringEvent(item, newDate);
-			    let eventLimitCondition = await checkUserEventsLimit(item.data().uid,futureStartingDate.getTime());          
-          if(newDate < new Date(item.data().end_date) && eventLimitCondition) {
-            let dateNumber = getDateNumber(newDate);
-            let dateString = getDateString(newDate);
-            newEvent.setDate = dateNumber;
-            newEvent.setDateTxt = dateString;
-            if(item.data().event_type === "deldr") {
-              newEvent = new DeliveryEvent(newEvent);
-              newEvent.setDeliveryType = item.data().delivery_type;
-            }
-            try{
-              await eventsRef.doc(newEvent.getDate + newEvent.getEventType + newEvent.getUid).create(JSON.parse(JSON.stringify(newEvent)));
-              return true;
-
-            }catch(err){
-              console.log(err);
-            }
-            
-          } 
-          else if (!eventLimitCondition) {
-            console.log("yes events exceeded" + getDateNumber(newDate));
-          }
-        return false;
+async function fillRecurringEvents(newEvent, item, futureStartingDate) {
+  let newDate = new Date(futureStartingDate);
+  futureStartingDate = new Date(futureStartingDate);
+  newDate.setTime(
+    newDate.getTime() + item.data().int_day_of_week * oneDayMilliseconds
+  );
+  // let newRecurEventCondition = await checkIfNewRecurringEvent(item, newDate);
+  let eventLimitCondition = await checkUserEventsLimit(
+    item.data().uid,
+    futureStartingDate.getTime()
+  );
+  if (newDate < new Date(item.data().end_date) && eventLimitCondition) {
+    let dateNumber = getDateNumber(newDate);
+    let dateString = getDateString(newDate);
+    newEvent.setDate = dateNumber;
+    newEvent.setDateTxt = dateString;
+    if (item.data().event_type === "deldr") {
+      newEvent = new DeliveryEvent(newEvent);
+      newEvent.setDeliveryType = item.data().delivery_type;
+    }
+    try {
+      await eventsRef
+        .doc(newEvent.getDate + newEvent.getEventType + newEvent.getUid)
+        .create(JSON.parse(JSON.stringify(newEvent)));
+      return true;
+    } catch (err) {
+      console.log(err);
+    }
+  } else if (!eventLimitCondition) {
+    console.log("yes events exceeded" + getDateNumber(newDate));
+  }
+  return false;
 }
 
-
-function createEvent(item){
+function createEvent(item) {
   let event = new Event();
-  event.setTimeEnd = Event.event_times[item.data().event_type]["normal_shift"].time_end;
-  event.setTimeStart = Event.event_times[item.data().event_type]["normal_shift"].time_start;
+  event.setTimeEnd =
+    Event.event_times[item.data().event_type]["normal_shift"].time_end;
+  event.setTimeStart =
+    Event.event_times[item.data().event_type]["normal_shift"].time_start;
   event.setEventType = item.data().event_type;
   event.setFirstName = item.data().first_name;
   event.setKey = "nan"; /// Not sure
@@ -123,32 +135,35 @@ function createEvent(item){
   return event;
 }
 
-function getSlotNumber(eventDate, eventType){
-   let existingEvents= eventsRef.where("event_date", "==", eventDate)
-  .where("event_type", "==", eventType).orderBy("slot", "desc").get();
-  return existingEvents.then(docs => {
-    if(docs.size == 0) {
+function getSlotNumber(eventDate, eventType) {
+  let existingEvents = eventsRef
+    .where("event_date", "==", eventDate)
+    .where("event_type", "==", eventType)
+    .orderBy("slot", "desc")
+    .get();
+  return existingEvents.then((docs) => {
+    if (docs.size == 0) {
       return 1;
-    } 
-    else {
-      return docs.docs[0].data().slot+1;
+    } else {
+      return docs.docs[0].data().slot + 1;
     }
-  })
-
+  });
 }
 
 //Check the number of events a user has in upcoming week. Must not exceed current limit
 //Current limit: 3
-async function checkUserEventsLimit(userid, weekStartDate){
-    weekStartDate = new Date(weekStartDate);
-    let weekEndDate = new Date(weekStartDate);
-    weekEndDate.setTime(weekEndDate.getTime() + 5*oneDayMilliseconds);
-    let weekStartDateNumber = getDateNumber(weekStartDate);
-    let weekEndDateNumber = getDateNumber(weekEndDate);
-    let results = await eventsRef.where("event_date", ">=", weekStartDateNumber).where("event_date", "<=", weekEndDateNumber)
-                  .where("uid", "==", userid).get();
-    return results.size < maxEventsPerWeek ? true : false ;
-
+async function checkUserEventsLimit(userid, weekStartDate) {
+  weekStartDate = new Date(weekStartDate);
+  let weekEndDate = new Date(weekStartDate);
+  weekEndDate.setTime(weekEndDate.getTime() + 5 * oneDayMilliseconds);
+  let weekStartDateNumber = getDateNumber(weekStartDate);
+  let weekEndDateNumber = getDateNumber(weekEndDate);
+  let results = await eventsRef
+    .where("event_date", ">=", weekStartDateNumber)
+    .where("event_date", "<=", weekEndDateNumber)
+    .where("uid", "==", userid)
+    .get();
+  return results.size < maxEventsPerWeek ? true : false;
 }
 
 //Check in advance, at least a week, to see if this recurring event has already been done before.
@@ -166,10 +181,10 @@ function getDates(firstDate, lastDate, freq) {
   while (firstDate <= lastDate) {
     //push the first Date
     validDates.push(getDateNumber(firstDate));
-    let oneDayMilliseconds = (freq) * 7 * 24 * 60 * 60 * 1000;
+    let oneDayMilliseconds = freq * 7 * 24 * 60 * 60 * 1000;
     firstDate.Time(firstDate.getTime() + oneDayMilliseconds);
   }
-  if (firstDate.toDateString() == 'yhi') {
+  if (firstDate.toDateString() == "yhi") {
     printStrings(new Date());
   }
   return validDates;
@@ -177,17 +192,44 @@ function getDates(firstDate, lastDate, freq) {
 
 function pad(num, size) {
   let s = num + "";
-  while (s.length < size)
-    s = "0" + s;
+  while (s.length < size) s = "0" + s;
   return s;
 }
 
 function getDateString(dateval) {
-  var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  var months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
   var dayName = days[dateval.getDay()];
   var monthName = months[dateval.getMonth()];
-  var dateString = dayName + ", " + monthName + " " + dateval.getDate() + ", " + dateval.getFullYear();
+  var dateString =
+    dayName +
+    ", " +
+    monthName +
+    " " +
+    dateval.getDate() +
+    ", " +
+    dateval.getFullYear();
   return dateString;
 }
 
@@ -196,17 +238,15 @@ function getDateNumber(date) {
   let day = "";
   if (date.getMonth() + 1 < 10) {
     month = "0" + (date.getMonth() + 1).toString();
-  }
-  else {
+  } else {
     month = (date.getMonth() + 1).toString();
   }
   if (date.getDate() < 10) {
     day = "0" + date.getDate().toString();
-  }
-  else {
+  } else {
     day = date.getDate().toString();
   }
-  let dateString = (date.getFullYear().toString()).substring(2, 4) + month + day;
+  let dateString = date.getFullYear().toString().substring(2, 4) + month + day;
   let intDate = +dateString;
   return intDate;
 }

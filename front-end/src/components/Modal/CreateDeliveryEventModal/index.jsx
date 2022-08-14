@@ -31,6 +31,7 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date }) => {
         userId: user.uid,
         eventDate: moment(date.format("YYYY-MM-DD")).toDate(),
         userComment: comment,
+        typeOfDelivery: value,
       });
     } catch (error) {
       console.log(error);

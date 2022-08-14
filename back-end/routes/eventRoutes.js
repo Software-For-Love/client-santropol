@@ -22,10 +22,10 @@ const {
  */
 eventRouter.get("/getEvents", async (req, res) => {
   //Optional event type, default value is kitam
-  let eventType = req.body.eventType ? req.body.eventType : "kitam";
+  let eventType = req.query.eventType ? req.query.eventType : "kitam";
   const db = getFirestore();
   const today = req.query.eventDate
-    ? moment(req.query.eventDate).add(1, "day").toDate()
+    ? moment(req.query.eventDate).toDate()
     : new Date();
   var year = today.getFullYear() % 100;
   var month =
@@ -90,33 +90,48 @@ eventRouter.get("/getEvents", async (req, res) => {
  * @param slot;
  */
 eventRouter.post("/createEvent", async (req, res) => {
-  const firstName = req.body.firstName;
-  const lastName = req.body.lastName;
-  const eventType = req.body.eventType;
-  const userId = req.body.userId;
-  const slot = req.body.slot;
-  const date = req.body.eventDate ? req.body.eventDate : Date.now();
+  try {
+    const firstName = req.body.firstName;
+    const lastName = req.body.lastName;
+    const eventType = req.body.eventType;
+    const userId = req.body.userId;
+    const slot = req.body.slot;
+    const date = req.body.eventDate ? req.body.eventDate : Date.now();
+    const typeOfDelivery = req.body.typeOfDelivery;
 
-  const userComment = req.body.userComment ? req.body.userComment : "";
-  const db = getFirestore();
-  var dbDate = parseInt(date);
+    const userComment = req.body.userComment ? req.body.userComment : "";
+    const db = getFirestore();
+    const dbDate = parseInt(date);
 
-  const userEventRef = doc(collection(db, "event"));
-  await setDoc(userEventRef, {
-    uid: userId,
-    event_date: dbDate,
-    slot: slot,
-    event_type: eventType,
-    first_name: firstName,
-    last_name: lastName,
-    user_comment: userComment,
-  })
-    .catch((err) => res.json({ success: false, result: err }))
-    .then((writeResult) => {
-      res.json({ success: true, result: writeResult });
+    console.log({
+      uid: userId,
+      event_date: dbDate,
+      slot: slot,
+      event_type: eventType,
+      first_name: firstName,
+      last_name: lastName,
+      user_comment: userComment,
+      type_of_delivery: typeOfDelivery,
     });
 
-  //get all the events for the current week
+    return;
+
+    const userEventRef = doc(collection(db, "event"));
+    const result = await setDoc(userEventRef, {
+      uid: userId,
+      event_date: dbDate,
+      slot: slot,
+      event_type: eventType,
+      first_name: firstName,
+      last_name: lastName,
+      user_comment: userComment,
+    });
+    console.log(result, "writeResult");
+    console.log(userEventRef, "userEventRef");
+    res.json({ success: true, result: result || "no result" });
+  } catch (error) {
+    res.json({ success: false, error: error });
+  }
 });
 
 /**

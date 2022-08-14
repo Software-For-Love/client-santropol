@@ -21,13 +21,15 @@ const CreateKitchenEventModal = ({ visible, setVisible, date }) => {
       const userNameArray = user.displayName.split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
+
       await AxiosInstance.post("/events/createEvent", {
         firstName,
         lastName,
         eventType: shiftTime === "AM" ? "kitam" : "kitpm",
         userId: user.uid,
-        eventDate: moment(date.format("YYYY-MM-DD")).toDate(),
+        eventDate: date.format("YYMMDD"),
         userComment: comment,
+        slot: 4,
       });
     } catch (error) {
       console.log(error);
