@@ -249,6 +249,7 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
   let eventCollectionRef = collection(db, "event");
   let q;
   let event;
+  let cancel_event;
   try {
   if(req.body.key && req.body.role){
     q = query(eventCollectionRef,where("key", "==", req.body.key));
@@ -260,14 +261,15 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
   if (!event) {
     res.status(404).json({success: false, result: "No returned values"});
   }
-  //Can only remove as a volunteer if greater than 2 days away, considered cancelled
+  //Can only remove as a volunteer if greater than 2 days away, staff/admin can remove anytime. Considered cancelled
   else if (req.body.role == "volunteer" && (event.data().event_date - getDateNumber(new Date()) < 2 || req.body.uid != req.user.uid)) {
     res.status(403).json({ success: false, result: "Not allowed to remove, contact staff" });
   } 
   else {
+    cancel_event =  {event_id: event.id, uid: req.body.uid, reason: req.body.reason ? req.body.reason: "" }
     await updateDoc(event.ref, { uid: "" });
-    await addDoc(collection(db, "user_cancelled_event"), {event_id: event.id, uid: req.body.uid, reason: req.body.reason ? req.body.reason: "" });
-    res.status(200).json({ success: true });
+    await addDoc(collection(db, "user_cancelled_event"), cancel_event);
+    res.status(200).json({ success: true, result: cancel_event });
   }
   }
    catch (e) {
@@ -313,6 +315,7 @@ eventRouter.get("/getUserPastEvents", async (req, res) => {
       getDocsWrapper(q).then((results) => res.status(200).json({ result: results.map(val => val.data()) }))
       .catch((err) => res.status(400).json({ success: false, result: err }));
     } 
+    //If no query is supplied, give both cancelled and past events
     else {
       q = query(
         collection(db, "event"),
