@@ -8,7 +8,7 @@ import AxiosInstance from "../../../API/api";
 import { AuthContext } from "../../../Contexts/AuthContext";
 
 const CreateKitchenEventModal = ({ visible, setVisible, date }) => {
-  const { user } = useContext(AuthContext);
+  const { user, userType } = useContext(AuthContext);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const shiftTime = window.location.pathname.includes("kitchen-am")
@@ -30,6 +30,7 @@ const CreateKitchenEventModal = ({ visible, setVisible, date }) => {
         eventDate: date.format("YYMMDD"),
         userComment: comment,
         slot: 4,
+        userType: userType
       });
     } catch (error) {
       console.log(error);
