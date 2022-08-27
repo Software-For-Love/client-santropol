@@ -104,6 +104,7 @@ const CalendarBody = (props) => {
                 key={`cell-${i}-${j}`}
                 date={day}
                 volunteerInfo={item.volunteerInfo}
+                eventInfo={item}
                 variant={variant}
                 getEvents={getEvents}
               />
