@@ -114,8 +114,6 @@ eventRouter.post("/createEvent", async (req, res) => {
       type_of_delivery: typeOfDelivery,
     });
 
-    return;
-
     const userEventRef = doc(collection(db, "event"));
     const result = await setDoc(userEventRef, {
       uid: userId,

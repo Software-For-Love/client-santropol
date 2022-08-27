@@ -19,7 +19,7 @@ const DELIVERY_ICONS = {
 
 const CalendarCell = (props) => {
   const { userType } = useContext(AuthContext);
-  const { date, volunteerInfo, variant } = props;
+  const { date, volunteerInfo, variant, getEvents } = props;
   const [modalVisible, setModalVisible] = useState(false);
   const [deliveryModalVisible, setDeliveryModalVisible] = useState(false);
 
@@ -69,11 +69,13 @@ const CalendarCell = (props) => {
         visible={modalVisible}
         setVisible={setModalVisible}
         date={date}
+        getEvents={getEvents}
       />
       <CreateDeliveryEventModal
         visible={deliveryModalVisible}
         setVisible={setDeliveryModalVisible}
         date={date}
+        getEvents={getEvents}
       />
     </>
   );

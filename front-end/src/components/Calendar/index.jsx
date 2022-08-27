@@ -18,7 +18,7 @@ const CalendarComponent = (props) => {
     try {
       const { data } = await AxiosInstance.get("/events/getEvents", {
         params: {
-          eventDate: date.format("YYYY-MM-DD"),
+          eventDate: date.startOf("week").format("YYYY-MM-DD"),
           eventType: variant,
         },
       });
@@ -48,7 +48,12 @@ const CalendarComponent = (props) => {
       {loading ? (
         <Loading />
       ) : (
-        <CalendarBody date={date} info={events} variant={variant} />
+        <CalendarBody
+          date={date}
+          info={events}
+          variant={variant}
+          getEvents={getEvents}
+        />
       )}
     </>
   );

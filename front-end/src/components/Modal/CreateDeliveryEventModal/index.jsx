@@ -8,7 +8,7 @@ import moment from "moment";
 import AxiosInstance from "../../../API/api";
 import { AuthContext } from "../../../Contexts/AuthContext";
 
-const CreateDeliveryEventModal = ({ visible, setVisible, date }) => {
+const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
   const { user } = useContext(AuthContext);
   const [value, setValue] = useState("Foot");
   const [comment, setComment] = useState("");
@@ -33,6 +33,7 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date }) => {
         userComment: comment,
         typeOfDelivery: value,
       });
+      getEvents();
     } catch (error) {
       console.log(error);
     }

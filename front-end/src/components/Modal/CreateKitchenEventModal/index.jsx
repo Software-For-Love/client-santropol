@@ -7,7 +7,7 @@ import moment from "moment";
 import AxiosInstance from "../../../API/api";
 import { AuthContext } from "../../../Contexts/AuthContext";
 
-const CreateKitchenEventModal = ({ visible, setVisible, date }) => {
+const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
   const { user } = useContext(AuthContext);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,6 +31,7 @@ const CreateKitchenEventModal = ({ visible, setVisible, date }) => {
         userComment: comment,
         slot: 4,
       });
+      getEvents();
     } catch (error) {
       console.log(error);
     }
@@ -66,6 +67,7 @@ const CreateKitchenEventModal = ({ visible, setVisible, date }) => {
       <p>
         <strong>Time: </strong>
         8AM - 11:30AM
+        {shiftTime === "AM" ? "9:30AM - 12:30AM" : "1:30PM - 4:30PM"}
       </p>
       <b>Comments:</b>
       <CommentTextArea
