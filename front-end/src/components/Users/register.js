@@ -40,7 +40,7 @@ const RegistrationForm = () => {
         });
       } else {
         // check if the email is in airtable.
-        const airtableInfo = await AxiosInstance.post(`auth/register`, {
+        const airtableInfo = await AxiosInstance.post(`/auth/register`, {
           email,
         });
 
