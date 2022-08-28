@@ -73,6 +73,51 @@ eventRouter.get("/getEvents", async (req, res) => {
   //get all the events for the current week
 });
 
+function getStartOfWeek(event_date){
+  console.log("Started");  
+  const year = event_date.toString().substring(0, 2);
+  const month = event_date.toString().substring(2, 4);
+  const day = event_date.toString().substring(4, 6);
+  const eventDate = moment(`20${year}-${month}-${day}`);
+  const startOfTheWeek = eventDate.subtract(eventDate.toDate().getDay(), "days");
+  return startOfTheWeek;
+}
+
+async function checkUserEventsLimit(userid, weekStartDate, endDate) {
+  const db = getFirestore();
+  let weekStartDateNumber = getDateNumber(weekStartDate);
+  let weekEndDateNumber = getDateNumber(endDate);
+
+  const q = query(
+    collection(db, "event"),
+    where("event_date", ">=", weekStartDateNumber),
+    where("event_date", "<", weekEndDateNumber),
+    where("uid", "==", userid)
+  );
+  const results = await getDocs(q);
+  return results.size < 3;
+}
+
+
+function getDateNumber(date) {
+  let month = "";
+  let day = "";
+  if (date.getMonth() + 1 < 10) {
+    month = "0" + (date.getMonth() + 1).toString();
+  } else {
+    month = (date.getMonth() + 1).toString();
+  }
+  if (date.getDate() < 10) {
+    day = "0" + date.getDate().toString();
+  } else {
+    day = date.getDate().toString();
+  }
+  let dateString = date.getFullYear().toString().substring(2, 4) + month + day;
+  let intDate = +dateString;
+  console.log("Date Int:"+ intDate);
+  return intDate;
+}
+
 /**
  *  Request to create an Event for a user:
  * @description:
@@ -90,31 +135,43 @@ eventRouter.get("/getEvents", async (req, res) => {
  * @param slot;
  */
 eventRouter.post("/createEvent", async (req, res) => {
-  const db = getFirestore();
-  const firstName = req.body.firstName;
-  const lastName = req.body.lastName;
-  const eventType = req.body.eventType;
-  const userId = req.body.userId;
-  const slot = req.body.slot;
-  const date = req.body.eventDate ? req.body.eventDate : Date.now();
-  const userComment = req.body.userComment ? req.body.userComment : "";
-  var dbDate = parseInt(date);
+  try {
+    const firstName = req.body.firstName;
+    const lastName = req.body.lastName;
+    const eventType = req.body.eventType;
+    const userId = req.body.userId;
+    const slot = req.body.slot;
+    const date = req.body.eventDate ? req.body.eventDate : Date.now();
+    const typeOfDelivery = req.body.typeOfDelivery;
+    const userType = req.body.userType;
 
-  const userEventRef = doc(collection(db, "event"));
-  await setDoc(userEventRef, {
-    uid: userId,
-    event_date: dbDate,
-    slot: slot,
-    event_type: eventType,
-    first_name: firstName,
-    last_name: lastName,
-    key: userEventRef.id,
-    user_comment: userComment,
-  })
-    .catch((err) => res.json({ success: false, result: err }))
-    .then((writeResult) => {
-      res.json({ success: true, result: writeResult });
+    const userComment = req.body.userComment ? req.body.userComment : "";
+    const db = getFirestore();
+    const dbDate = parseInt(date);
+    
+    const startOfWeek = getStartOfWeek(date);
+    const endOfWeek = getStartOfWeek(date).add(6,"days");
+    const validUserEvent = await checkUserEventsLimit(userId,startOfWeek.toDate(),endOfWeek.toDate());
+    console.log("User event is valid : "+ validUserEvent);
+    if(!validUserEvent && userType === 'volunteer'){
+      res.json({ success: false, error: "User has volunteered for 3 events this week" });
+      return;
+    }
+    const userEventRef = doc(collection(db, "event"));
+    const result = await setDoc(userEventRef, {
+      uid: userId,
+      event_date: dbDate,
+      slot: slot,
+      event_type: eventType,
+      first_name: firstName,
+      last_name: lastName,
+      user_comment: userComment
     });
+    res.json({ success: true, result: result || "no result" });
+  } catch (error) {
+    console.log("Error occurred");
+    res.json({ success: false, error: error });
+  }
 });
 
 /**
