@@ -9,7 +9,7 @@ import { AuthContext } from "../../../Contexts/AuthContext";
 
 const CalendarBody = (props) => {
   const { userType } = useContext(AuthContext);
-  const { date, info, variant } = props;
+  const { date, info, variant, getEvents } = props;
   const startOfWeek = moment(date).startOf("week");
   const [events, setEvents] = useState([[], [], [], [], [], [], []]);
   const [buttonColors, setButtonColors] = useState([]); // each day has a button color depending on if all the events are full or not
@@ -105,6 +105,7 @@ const CalendarBody = (props) => {
                 date={day}
                 volunteerInfo={item.volunteerInfo}
                 variant={variant}
+                getEvents={getEvents}
               />
             ))}
             {userType === "admin" && (
