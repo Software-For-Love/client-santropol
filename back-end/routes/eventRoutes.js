@@ -165,7 +165,7 @@ eventRouter.post("/createEvent", async (req, res) => {
       event_type: eventType,
       first_name: firstName,
       last_name: lastName,
-      user_comment: userComment,
+      user_comment: userComment
     });
     res.json({ success: true, result: result || "no result" });
   } catch (error) {
