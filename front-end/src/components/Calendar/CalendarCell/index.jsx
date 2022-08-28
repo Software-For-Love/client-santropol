@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Cell, { Icon, DeleteButton } from "./styles";
 import PropTypes from "prop-types";
-import AssignSlotOverlay from "../../Modal/AssignSlotOverlay";
+import { CreateDeliveryEventModal, CreateKitchenEventModal } from "../../Modal";
 import { Typography, Tooltip } from "antd";
 import MissedShiftIcon from "../../../assets/missed-shift-icon.svg";
 import CarIcon from "../../../assets/car.svg";
 import BicycleIcon from "../../../assets/bicycle.svg";
 import OnFootIcon from "../../../assets/on-foot.svg";
-import DeliveryOverlay from "../../Modal/DeliveryOverlay";
 import DeleteIcon from "../../../assets/close.svg";
+import { AuthContext } from "../../../Contexts/AuthContext";
 
 const DELIVERY_ICONS = {
   "Own Car": CarIcon,
@@ -18,17 +18,16 @@ const DELIVERY_ICONS = {
 };
 
 const CalendarCell = (props) => {
-  const { type, date, volunteerInfo, variant } = props;
+  const { userType } = useContext(AuthContext);
+  const { date, volunteerInfo, variant } = props;
   const [modalVisible, setModalVisible] = useState(false);
   const [deliveryModalVisible, setDeliveryModalVisible] = useState(false);
 
   const onClickHandler = () => {
-    if (type === "admin") {
-      if (variant !== "delivery") {
-        setModalVisible(true);
-      } else {
-        setDeliveryModalVisible(true);
-      }
+    if (variant !== "deliv") {
+      setModalVisible(true);
+    } else {
+      setDeliveryModalVisible(true);
     }
   };
 
@@ -38,23 +37,25 @@ const CalendarCell = (props) => {
     </Tooltip>
   );
 
-  const DeliveryTypeIndicator = ({ type }) => (
-    <Icon src={DELIVERY_ICONS[type]} alt="delivery-icon" />
+  const DeliveryTypeIndicator = ({ deliveryType }) => (
+    <Icon src={DELIVERY_ICONS[deliveryType]} alt="delivery-icon" />
   );
 
   return (
     <>
-      <Cell onClick={onClickHandler} type={type}>
-        {type === "admin" && volunteerInfo && (
+      <Cell onClick={onClickHandler}>
+        {userType === "admin" && volunteerInfo && (
           <DeleteButton src={DeleteIcon} alt="delete shift" />
         )}
         {volunteerInfo && (
           <>
-            {volunteerInfo.missedShifts && type === "admin" && (
+            {volunteerInfo.missedShifts && userType === "admin" && (
               <MissedShiftIndicator />
             )}
             {volunteerInfo.deliveryType && (
-              <DeliveryTypeIndicator type={volunteerInfo.deliveryType} />
+              <DeliveryTypeIndicator
+                deliveryType={volunteerInfo.deliveryType}
+              />
             )}
             <Typography.Text style={{ fontSize: "1rem" }}>
               {`${volunteerInfo.firstName || "No Data"} ${
@@ -64,16 +65,14 @@ const CalendarCell = (props) => {
           </>
         )}
       </Cell>
-      <AssignSlotOverlay
+      <CreateKitchenEventModal
         visible={modalVisible}
         setVisible={setModalVisible}
         date={date}
-        volunteerInfo={volunteerInfo}
       />
-      <DeliveryOverlay
+      <CreateDeliveryEventModal
         visible={deliveryModalVisible}
         setVisible={setDeliveryModalVisible}
-        type={volunteerInfo?.deliveryType}
         date={date}
       />
     </>
@@ -82,7 +81,6 @@ const CalendarCell = (props) => {
 
 CalendarCell.propTypes = {
   variant: PropTypes.string, // delivery | kitchenAM | kitchenPM
-  type: PropTypes.string.isRequired, // admin, volunteer
   date: PropTypes.object.isRequired,
   volunteerInfo: PropTypes.object,
 };

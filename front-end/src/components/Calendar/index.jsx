@@ -8,7 +8,7 @@ import AxiosInstance from "../../API/api";
 import Loading from "../../components/Loading";
 
 const CalendarComponent = (props) => {
-  const { type, variant } = props; // type: admin | volunteer, info: volunteer info array
+  const { variant } = props; //kitam | kitpm | deliv
   const [date, setDate] = useState(moment());
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState([]);
@@ -48,14 +48,13 @@ const CalendarComponent = (props) => {
       {loading ? (
         <Loading />
       ) : (
-        <CalendarBody date={date} type={type} info={events} variant={variant} />
+        <CalendarBody date={date} info={events} variant={variant} />
       )}
     </>
   );
 };
 
 CalendarComponent.propTypes = {
-  type: PropTypes.string.isRequired,
   variant: PropTypes.string,
 };
 

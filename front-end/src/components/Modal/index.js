@@ -1,4 +1,4 @@
-export { default as AssignSlotOverlay } from "./AssignSlotOverlay";
-export { default as DeliveryOverlay } from "./DeliveryOverlay";
+export { default as CreateKitchenEventModal } from "./CreateKitchenEventModal";
+export { default as CreateDeliveryEventModal } from "./CreateDeliveryEventModal";
 export { default as ClientDeliveryOverlay } from "./ClientDeliveryOverlay";
 export { default as ResetPasswordOverlay } from "./ResetPasswordOverlay";
