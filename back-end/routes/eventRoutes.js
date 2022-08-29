@@ -187,16 +187,11 @@ eventRouter.post("/createEvent", async (req, res) => {
     key: userEventRef.id,
     user_comment: userComment,
   })
-    .catch((err) => res.json({ success: false, result: err }))
-    .then((writeResult) => {
+  .catch((err) => res.json({ success: false, result: err }))
+  .then((writeResult) => {
       res.json({ success: true, result: writeResult });
     });
-    res.json({ success: true, result: result || "no result" });
-  } catch (error) {
-    console.log("Error occurred");
-    res.json({ success: false, error: error });
-  }
-});
+  });
 
 /**
  *  Request to create an Event for a user:
