@@ -191,6 +191,11 @@ eventRouter.post("/createEvent", async (req, res) => {
     .then((writeResult) => {
       res.json({ success: true, result: writeResult });
     });
+    res.json({ success: true, result: result || "no result" });
+  } catch (error) {
+    console.log("Error occurred");
+    res.json({ success: false, error: error });
+  }
 });
 
 /**
