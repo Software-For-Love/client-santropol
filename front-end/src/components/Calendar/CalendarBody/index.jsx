@@ -18,9 +18,10 @@ const CalendarBody = (props) => {
     const result = [[], [], [], [], [], [], []];
     const newButtonColors = [...buttonColors];
 
-    info.forEach(({ data }) => {
+    info.forEach(({ data,id }) => {
+      
       const { event_date, first_name, last_name } = data;
-
+      const event_id = id;
       const year = event_date.toString().substring(0, 2);
       const month = event_date.toString().substring(2, 4);
       const day = event_date.toString().substring(4, 6);
@@ -32,7 +33,8 @@ const CalendarBody = (props) => {
       const eventIndex = eventDate.weekday();
       // add to the result array
       result[eventIndex].push({
-        ...data,
+        data,
+        event_id,
         volunteerInfo: {
           firstName: first_name,
           lastName: last_name,
@@ -105,6 +107,8 @@ const CalendarBody = (props) => {
                 date={day}
                 volunteerInfo={item.volunteerInfo}
                 variant={variant}
+                event_id= {item.event_id}
+                data = {item}
                 getEvents={getEvents}
               />
             ))}

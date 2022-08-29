@@ -5,6 +5,7 @@ const {
   getFirestore,
   getDocs,
   setDoc,
+  deleteDoc,
   updateDoc,
   doc,
   collection,
@@ -31,7 +32,7 @@ eventRouter.get("/getEvents", async (req, res) => {
   var month =
     today.getMonth() + 1 < 10
       ? "0" + (today.getMonth() + 1).toString()
-      : today.getMonth() + 1;
+      : (today.getMonth() + 1).toString();
   var day =
     today.getDate() < 10 ? "0" + today.getDate().toString() : today.getDate();
   var nextweek = new Date(
@@ -73,6 +74,68 @@ eventRouter.get("/getEvents", async (req, res) => {
   //get all the events for the current week
 });
 
+function getStartOfWeek(event_date){
+
+  let year,month,day,eventDate;
+  if(event_date.length != 6){
+    eventDate = moment(event_date)
+  }
+  else{
+  
+    eventDate = getDBDateFromString(event_date);
+    
+  }
+  
+  startOfTheWeek = eventDate.subtract(eventDate.toDate().getDay(), "days");
+  return startOfTheWeek;
+}
+
+function getDBDateFromString(event_date) {
+  year = event_date.toString().substring(0, 2);
+  month = event_date.toString().substring(2, 4);
+  day = event_date.toString().substring(4, 6);
+  eventDate = moment(`20${year}-${month}-${day}`);
+  return eventDate;
+}
+
+async function checkUserEventsLimit(userid, weekStartDate, endDate) {
+  const db = getFirestore();
+  let weekStartDateNumber = getDateNumber(weekStartDate);
+  let weekEndDateNumber = getDateNumber(endDate);
+
+  const q = query(
+    collection(db, "event"),
+    where("event_date", ">=", weekStartDateNumber),
+    where("event_date", "<", weekEndDateNumber),
+    where("uid", "==", userid)
+  );
+  const results = await getDocs(q);
+  return results.size < 3;
+}
+
+
+function getDateNumber(date) {
+  let month = "";
+  let day = "";
+  if(date.length == 6){
+    return date;
+  }
+  date = moment(date);
+  if (date.month() + 1 < 10) {
+    month = "0" + (date.month() + 1).toString();
+  } else {
+    month = (date.month() + 1).toString();
+  }
+  if (date.day() < 10) {
+    day = "0" + date.day().toString();
+  } else {
+    day = date.day().toString();
+  }
+  let dateString = date.year().toString().substring(2, 4) + month + day;
+  let intDate = +dateString;
+  return intDate;
+}
+
 /**
  *  Request to create an Event for a user:
  * @description:
@@ -96,15 +159,28 @@ eventRouter.post("/createEvent", async (req, res) => {
   const eventType = req.body.eventType;
   const userId = req.body.userId;
   const slot = req.body.slot;
+  const typeOfDelivery = req.body.typeOfDelivery;
+  const userType = req.body.userType;
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
+
   const userComment = req.body.userComment ? req.body.userComment : "";
-  var dbDate = parseInt(date);
+  
+  var dbDate = parseInt(getDateNumber(date));
+
+  const startOfWeek = getStartOfWeek(date);
+  const endOfWeek = getStartOfWeek(date).add(6,"days");
+  const validUserEvent = await checkUserEventsLimit(userId,startOfWeek,endOfWeek);
+
+  if(!validUserEvent && userType === 'volunteer'){
+    res.json({ success: false, error: "User has volunteered for 3 events this week" });
+    return;
+  }
 
   const userEventRef = doc(collection(db, "event"));
   await setDoc(userEventRef, {
     uid: userId,
     event_date: dbDate,
-    slot: slot,
+    slot: slot || 0,
     event_type: eventType,
     first_name: firstName,
     last_name: lastName,
@@ -167,5 +243,25 @@ eventRouter.post("/editEvent", async (req, res) => {
 
   //get all the events for the current week
 });
+
+eventRouter.post("/deleteEvent", async (req, res) => {
+  const db = getFirestore();
+  const eventId = req.body.event_id;
+  console.log("Event Delete request");
+  if (!eventId) {
+    res.json({ success: false, result: "Event ID is required" });
+  }
+  const userDeleteEventRef = doc(collection(db, "event"), eventId);
+  await deleteDoc(userDeleteEventRef)
+    .catch((err) => res.json({ success: false, result: err }))
+    .then((result) => {
+      res.json({ success: true, result: "Event Delete Success" });
+    });
+    return;
+
+  //get all the events for the current week
+});
+
+
 
 module.exports = eventRouter;

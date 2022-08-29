@@ -53,7 +53,7 @@ const RegistrationForm = () => {
         const { displayName } = airtableInfo.data;
 
         // at this point we know the user is in the airtable
-        if (emailDomain === "santropolroulant.org") {
+        if (emailDomain === "santropolroulant.org" || emailDomain === "softwareforlove.com") {
           // if the email is from santropolroulant.org, make them an admin
           const userCredentials = await createUserWithEmailAndPassword(
             auth,

@@ -21,15 +21,16 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
   const createEvent = async () => {
     setLoading(true);
     try {
-      const userNameArray = user.displayName.split(" ");
+      const userNameArray = user.displayName? user.displayName.split(" "): "Test User".split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
       await AxiosInstance.post("/events/createEvent", {
         firstName,
         lastName,
         eventType: "deliv",
+        slot: 4,
         userId: user.uid,
-        eventDate: moment(date.format("YYYY-MM-DD")).toDate(),
+        eventDate: date.format("YYMMDD"),
         userComment: comment,
         typeOfDelivery: value,
       });
