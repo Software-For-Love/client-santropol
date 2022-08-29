@@ -6,6 +6,7 @@ import moment from "moment";
 import { Col } from "antd";
 import CalendarCell from "../CalendarCell";
 import { AuthContext } from "../../../Contexts/AuthContext";
+import AxiosInstance from "../../../API/api";
 
 const CalendarBody = (props) => {
   const { userType } = useContext(AuthContext);
@@ -44,6 +45,8 @@ const CalendarBody = (props) => {
 
     // We need to have minimum of three events per day
     result.forEach((dailyEvents, index) => {
+     const todaysDate =  moment(startOfWeek).add(index,'days');
+
       const length = 3 - dailyEvents.length; // number of empty events needed to fill up the column
 
       if (length > 0) {
@@ -54,7 +57,7 @@ const CalendarBody = (props) => {
       }
       for (let i = 0; i < length; i++) {
         dailyEvents.push({
-          event_date: null,
+          event_date: todaysDate.format("YYMMDD"),
           first_name: null,
           last_name: null,
         });
@@ -72,6 +75,19 @@ const CalendarBody = (props) => {
   const plusIconClickHandler = (index) => {
     const newNumberOfCells = [...events];
     newNumberOfCells[index].push({});
+    AxiosInstance.post("/events/setEventGroup", {
+      eventType: variant,
+      eventDate: parseInt(newNumberOfCells[index][0].event_date),
+      slots:  newNumberOfCells[index].length
+    });
+    AxiosInstance.get("/events/getWeeklyEventSlots", {
+      params: {
+        eventDate: date.startOf("week").format("YYMMDD"),
+        eventType: variant,
+      },
+    });
+    console.log("Event type: "+ variant);
+    console.log("Clicked: " + newNumberOfCells[index][0].event_date);
     setEvents(newNumberOfCells);
   };
 
@@ -112,7 +128,7 @@ const CalendarBody = (props) => {
                 getEvents={getEvents}
               />
             ))}
-            {userType === "admin" && (
+            {(
               <PlusIcon
                 onClick={() => {
                   plusIconClickHandler(i);

@@ -13,6 +13,65 @@ const {
   where,
 } = require("firebase/firestore");
 
+eventRouter.post("/setEventGroup", async (req, res) => {
+  const db = getFirestore();
+  const eventType = req.body.eventType ? req.body.eventType : "kitam";
+  const eventDate = req.body.eventDate;
+  const slots = req.body.slots;
+
+
+  const userEventRef = doc(collection(db, "event_group"),eventType+eventDate);
+  await setDoc(userEventRef, 
+    {
+    eventType: eventType,
+    dateNumber: parseInt(eventDate),
+    slots 
+  })
+    .catch(err => {res.json({success: false, result: err})})
+    .then(wr =>{res.json({success: true, result: "Add Slot Success"})} )
+});
+
+/**
+ *  Request to get events for the current week optional paramater is the date selected.
+ *
+ *  @param  eventType: Optional parameter for event type default value is kit am
+ *  @param  eventDate: Optional parameter for event date default value is today
+ *
+ *
+ */
+
+eventRouter.get("/getWeeklyEventSlots", async (req, res) => {
+  const db = getFirestore();
+  let eventType = req.query.eventType ? req.query.eventType : "kitam";
+  const today = req.query.eventDate;
+  let defaultWeeklyEvents = [3,3,3,3,3,3,3];
+
+  const upperBound = getDateNumber(getStartOfWeek(today).add(6,"days"));
+  const lowerBound = parseInt(today);
+  var result = [];
+
+  const q = query(
+    collection(db, "event_group"),
+    where("dateNumber", "<=", upperBound),
+    where("dateNumber", ">=", lowerBound),
+    where("eventType", "==", eventType)
+  );
+  try{
+  await getDocs(q)
+    .catch((err) => res.json({ success: false, result: err }))
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        // doc.data() is never undefined for query doc snapshots
+        result.push({ id: doc.id, data: doc.data() });
+      });
+      res.json({ success: true, result });
+    });
+  }
+  catch(e){
+    res.json({ success: false, result: e });
+
+  }
+});
 /**
  *  Request to get events for the current week optional paramater is the date selected.
  *
@@ -68,6 +127,8 @@ eventRouter.get("/getEvents", async (req, res) => {
         // doc.data() is never undefined for query doc snapshots
         result.push({ id: doc.id, data: doc.data() });
       });
+      
+
       res.json({ success: true, result });
     });
 
