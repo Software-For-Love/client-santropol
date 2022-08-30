@@ -58,18 +58,19 @@ eventRouter.get("/getWeeklyEventSlots", async (req, res) => {
   );
   try{
   await getDocs(q)
-    .catch((err) => res.json({ success: false, result: err }))
+    .catch((err) =>
+    //  res.json({ success: false, result: err };
+    console.error(err))
     .then((querySnapshot) => {
       querySnapshot.forEach((doc) => {
         // doc.data() is never undefined for query doc snapshots
         result.push({ id: doc.id, data: doc.data() });
       });
-      res.json({ success: true, result });
+      res.json({ success: true, result: result });
     });
   }
   catch(e){
     res.json({ success: false, result: e });
-
   }
 });
 /**
