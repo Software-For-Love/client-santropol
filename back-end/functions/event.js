@@ -1,5 +1,5 @@
 class Event {
-  static eventTimes = {
+  static event_times = {
       deldr: {
         first_shift: {
           time_start: "14:15",
