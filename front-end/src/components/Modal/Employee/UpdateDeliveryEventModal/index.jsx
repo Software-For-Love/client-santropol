@@ -103,12 +103,12 @@ const UpdateDeliveryEventModal = ({
           ))}
         </Radio.Group>
       </p>
-      <b>Volunteer Comments:</b>
+      <b>Volunteer Comment:</b>
       <CommentTextArea
         value={comment}
         onChange={(event) => setComment(event.target.value)}
       />
-      <b>Employee Comments:</b>
+      <b>Employee Comment:</b>
       <CommentTextArea
         value={employeeComment}
         onChange={(event) => setEmployeeComment(event.target.value)}
