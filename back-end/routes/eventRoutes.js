@@ -73,13 +73,16 @@ eventRouter.get("/getEvents", async (req, res) => {
   //get all the events for the current week
 });
 
-function getStartOfWeek(event_date){
-  console.log("Started");  
+function getStartOfWeek(event_date) {
+  console.log("Started");
   const year = event_date.toString().substring(0, 2);
   const month = event_date.toString().substring(2, 4);
   const day = event_date.toString().substring(4, 6);
   const eventDate = moment(`20${year}-${month}-${day}`);
-  const startOfTheWeek = eventDate.subtract(eventDate.toDate().getDay(), "days");
+  const startOfTheWeek = eventDate.subtract(
+    eventDate.toDate().getDay(),
+    "days"
+  );
   return startOfTheWeek;
 }
 
@@ -98,7 +101,6 @@ async function checkUserEventsLimit(userid, weekStartDate, endDate) {
   return results.size < 3;
 }
 
-
 function getDateNumber(date) {
   let month = "";
   let day = "";
@@ -114,7 +116,7 @@ function getDateNumber(date) {
   }
   let dateString = date.getFullYear().toString().substring(2, 4) + month + day;
   let intDate = +dateString;
-  console.log("Date Int:"+ intDate);
+  console.log("Date Int:" + intDate);
   return intDate;
 }
 
@@ -148,13 +150,20 @@ eventRouter.post("/createEvent", async (req, res) => {
     const userComment = req.body.userComment ? req.body.userComment : "";
     const db = getFirestore();
     const dbDate = parseInt(date);
-    
+
     const startOfWeek = getStartOfWeek(date);
-    const endOfWeek = getStartOfWeek(date).add(6,"days");
-    const validUserEvent = await checkUserEventsLimit(userId,startOfWeek.toDate(),endOfWeek.toDate());
-    console.log("User event is valid : "+ validUserEvent);
-    if(!validUserEvent && userType === 'volunteer'){
-      res.json({ success: false, error: "User has volunteered for 3 events this week" });
+    const endOfWeek = getStartOfWeek(date).add(6, "days");
+    const validUserEvent = await checkUserEventsLimit(
+      userId,
+      startOfWeek.toDate(),
+      endOfWeek.toDate()
+    );
+    console.log("User event is valid : " + validUserEvent);
+    if (!validUserEvent && userType === "volunteer") {
+      res.json({
+        success: false,
+        error: "User has volunteered for 3 events this week",
+      });
       return;
     }
     const userEventRef = doc(collection(db, "event"));
@@ -165,16 +174,13 @@ eventRouter.post("/createEvent", async (req, res) => {
       event_type: eventType,
       first_name: firstName,
       last_name: lastName,
-      user_comment: userComment
+      user_comment: userComment,
     });
-<<<<<<< HEAD
-=======
     res.json({ success: true, result: result || "no result" });
   } catch (error) {
     console.log("Error occurred");
     res.json({ success: false, error: error });
   }
->>>>>>> main
 });
 
 /**
