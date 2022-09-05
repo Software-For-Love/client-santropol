@@ -19,16 +19,21 @@ eventRouter.post("/setEventGroup", async (req, res) => {
   const eventDate = req.body.eventDate;
   const slots = req.body.slots;
 
-
-  const userEventRef = doc(collection(db, "event_group"),eventType+eventDate);
-  await setDoc(userEventRef, 
-    {
+  const userEventRef = doc(
+    collection(db, "event_group"),
+    eventType + eventDate
+  );
+  await setDoc(userEventRef, {
     eventType: eventType,
     dateNumber: parseInt(eventDate),
-    slots 
+    slots,
   })
-    .catch(err => {res.json({success: false, result: err})})
-    .then(wr =>{res.json({success: true, result: "Add Slot Success"})} )
+    .catch((err) => {
+      res.json({ success: false, result: err });
+    })
+    .then((wr) => {
+      res.json({ success: true, result: "Add Slot Success" });
+    });
 });
 
 /**
@@ -44,9 +49,9 @@ eventRouter.get("/getWeeklyEventSlots", async (req, res) => {
   const db = getFirestore();
   let eventType = req.query.eventType ? req.query.eventType : "kitam";
   const today = req.query.eventDate;
-  let defaultWeeklyEvents = [3,3,3,3,3,3,3];
+  let defaultWeeklyEvents = [3, 3, 3, 3, 3, 3, 3];
 
-  const upperBound = getDateNumber(getStartOfWeek(today).add(6,"days"));
+  const upperBound = getDateNumber(getStartOfWeek(today).add(6, "days"));
   const lowerBound = parseInt(today);
   var result = [];
 
@@ -56,20 +61,20 @@ eventRouter.get("/getWeeklyEventSlots", async (req, res) => {
     where("dateNumber", ">=", lowerBound),
     where("eventType", "==", eventType)
   );
-  try{
-  await getDocs(q)
-    .catch((err) =>
-    //  res.json({ success: false, result: err };
-    console.error(err))
-    .then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        // doc.data() is never undefined for query doc snapshots
-        result.push({ id: doc.id, data: doc.data() });
+  try {
+    await getDocs(q)
+      .catch((err) =>
+        //  res.json({ success: false, result: err };
+        console.error(err)
+      )
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          // doc.data() is never undefined for query doc snapshots
+          result.push({ id: doc.id, data: doc.data() });
+        });
+        res.json({ success: true, result: result });
       });
-      res.json({ success: true, result: result });
-    });
-  }
-  catch(e){
+  } catch (e) {
     res.json({ success: false, result: e });
   }
 });
@@ -128,7 +133,6 @@ eventRouter.get("/getEvents", async (req, res) => {
         // doc.data() is never undefined for query doc snapshots
         result.push({ id: doc.id, data: doc.data() });
       });
-      
 
       res.json({ success: true, result });
     });
@@ -136,18 +140,14 @@ eventRouter.get("/getEvents", async (req, res) => {
   //get all the events for the current week
 });
 
-function getStartOfWeek(event_date){
-
-  let year,month,day,eventDate;
-  if(event_date.length != 6){
-    eventDate = moment(event_date)
-  }
-  else{
-  
+function getStartOfWeek(event_date) {
+  let year, month, day, eventDate;
+  if (event_date.length != 6) {
+    eventDate = moment(event_date);
+  } else {
     eventDate = getDBDateFromString(event_date);
-    
   }
-  
+
   startOfTheWeek = eventDate.subtract(eventDate.toDate().getDay(), "days");
   return startOfTheWeek;
 }
@@ -175,11 +175,10 @@ async function checkUserEventsLimit(userid, weekStartDate, endDate) {
   return results.size < 3;
 }
 
-
 function getDateNumber(date) {
   let month = "";
   let day = "";
-  if(date.length == 6){
+  if (date.length == 6) {
     return date;
   }
   date = moment(date);
@@ -226,15 +225,22 @@ eventRouter.post("/createEvent", async (req, res) => {
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
 
   const userComment = req.body.userComment ? req.body.userComment : "";
-  
+
   var dbDate = parseInt(getDateNumber(date));
 
   const startOfWeek = getStartOfWeek(date);
-  const endOfWeek = getStartOfWeek(date).add(6,"days");
-  const validUserEvent = await checkUserEventsLimit(userId,startOfWeek,endOfWeek);
+  const endOfWeek = getStartOfWeek(date).add(6, "days");
+  const validUserEvent = await checkUserEventsLimit(
+    userId,
+    startOfWeek,
+    endOfWeek
+  );
 
-  if(!validUserEvent && userType === 'volunteer'){
-    res.json({ success: false, error: "User has volunteered for 3 events this week" });
+  if (!validUserEvent && userType === "volunteer") {
+    res.json({
+      success: false,
+      error: "User has volunteered for 3 events this week",
+    });
     return;
   }
 
@@ -249,11 +255,11 @@ eventRouter.post("/createEvent", async (req, res) => {
     key: userEventRef.id,
     user_comment: userComment,
   })
-  .catch((err) => res.json({ success: false, result: err }))
-  .then((writeResult) => {
+    .catch((err) => res.json({ success: false, result: err }))
+    .then((writeResult) => {
       res.json({ success: true, result: writeResult });
     });
-  });
+});
 
 /**
  *  Request to create an Event for a user:
@@ -285,6 +291,7 @@ eventRouter.post("/editEvent", async (req, res) => {
   const slot = req.body.slot;
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
   const userComment = req.body.userComment ? req.body.userComment : "";
+
   const db = getFirestore();
   var dbDate = parseInt(date);
 
@@ -319,11 +326,9 @@ eventRouter.post("/deleteEvent", async (req, res) => {
     .then((result) => {
       res.json({ success: true, result: "Event Delete Success" });
     });
-    return;
+  return;
 
   //get all the events for the current week
 });
-
-
 
 module.exports = eventRouter;

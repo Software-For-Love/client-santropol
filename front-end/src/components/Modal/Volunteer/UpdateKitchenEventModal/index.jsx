@@ -1,24 +1,33 @@
 import React, { useContext, useState } from "react";
 import PropTypes from "prop-types";
 import { Row } from "antd";
-import Button from "../../Button";
-import Modal, { CommentTextArea } from "../styles";
+import Button from "../../../Button";
+import Modal, { CommentTextArea } from "../../styles";
 import moment from "moment";
-import AxiosInstance from "../../../API/api";
-import { AuthContext } from "../../../Contexts/AuthContext";
+import AxiosInstance from "../../../../API/api";
+import { AuthContext } from "../../../../Contexts/AuthContext";
 
-const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
+const CreateKitchenEventModal = ({
+  visible,
+  setVisible,
+  date,
+  getEvents,
+  volunteerInfo,
+  eventInfo,
+}) => {
   const { user } = useContext(AuthContext);
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(eventInfo?.user_comment || "");
   const [loading, setLoading] = useState(false);
   const shiftTime = window.location.pathname.includes("kitchen-am")
     ? "AM"
     : "PM";
 
-  const createEvent = async () => {
+  console.log(volunteerInfo);
+
+  const updateEvent = async () => {
     setLoading(true);
     try {
-      const userNameArray = user.displayName? user.displayName.split(" "): "Test User".split(" ");
+      const userNameArray = user.displayName.split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
 
@@ -37,26 +46,34 @@ const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
     }
 
     setLoading(false);
-    setVisible(false);
+    setVisible((prev) => ({
+      ...prev,
+      volunteerUpdateKitchenEventModalVisible: false,
+    }));
   };
 
   const Footer = () => (
     <Row justify="center">
-      <Button onClick={createEvent} loading={loading}>
-        Confirm
+      <Button onClick={updateEvent} loading={loading}>
+        Update
       </Button>
     </Row>
   );
 
   const Title = () => (
     <Row justify="center">
-      <h3>{`${shiftTime} Kitchen Shift`}</h3>
+      <h3>{`Update ${shiftTime} Kitchen Shift`}</h3>
     </Row>
   );
   return (
     <Modal
       visible={visible}
-      onCancel={() => setVisible(false)}
+      onCancel={() =>
+        setVisible((prev) => ({
+          ...prev,
+          volunteerUpdateKitchenEventModalVisible: false,
+        }))
+      }
       footer={<Footer />}
       title={<Title />}
     >
@@ -67,6 +84,10 @@ const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
       <p>
         <strong>Time: </strong>
         {shiftTime === "AM" ? "9:30AM - 12:30AM" : "1:30PM - 4:30PM"}
+      </p>
+      <p>
+        <strong>Assigned volunteer: </strong>
+        {user.displayName}
       </p>
       <b>Comments:</b>
       <CommentTextArea
@@ -81,6 +102,9 @@ CreateKitchenEventModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   setVisible: PropTypes.func.isRequired,
   date: PropTypes.object.isRequired,
+  getEvents: PropTypes.func.isRequired,
+  volunteerInfo: PropTypes.object.isRequired,
+  eventInfo: PropTypes.object.isRequired,
 };
 
 export default CreateKitchenEventModal;

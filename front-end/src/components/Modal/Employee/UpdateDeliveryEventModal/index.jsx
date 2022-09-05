@@ -1,36 +1,44 @@
 import { useState, useContext } from "react";
 import PropTypes from "prop-types";
-import { Row, Radio } from "antd";
-import Button from "../../Button";
-import Modal, { CommentTextArea } from "../styles";
-import { DELIVERY_TYPES } from "../../../constants";
+import { Row, Radio, Checkbox } from "antd";
+import Button from "../../../Button";
+import Modal, { CommentTextArea } from "../../styles";
+import { DELIVERY_TYPES } from "../../../../constants";
 import moment from "moment";
-import AxiosInstance from "../../../API/api";
-import { AuthContext } from "../../../Contexts/AuthContext";
+import AxiosInstance from "../../../../API/api";
+import { AuthContext } from "../../../../Contexts/AuthContext";
 
-const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
+const UpdateDeliveryEventModal = ({
+  visible,
+  setVisible,
+  date,
+  getEvents,
+  eventInfo,
+  volunteerInfo,
+}) => {
   const { user } = useContext(AuthContext);
   const [value, setValue] = useState("Foot");
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(eventInfo?.user_comment || "");
+  const [employeeComment, setEmployeeComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   const onTypeOfDeliveryChange = (e) => {
     setValue(e.target.value);
   };
 
-  const createEvent = async () => {
+  const updateEvent = async () => {
     setLoading(true);
     try {
-      const userNameArray = user.displayName? user.displayName.split(" "): "Test User".split(" ");
+      const userNameArray = user.displayName.split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
       await AxiosInstance.post("/events/createEvent", {
         firstName,
         lastName,
         eventType: "deliv",
-        slot: 4,
         userId: user.uid,
-        eventDate: date.format("YYMMDD"),
+        eventDate: moment(date.format("YYYY-MM-DD")).toDate(),
         userComment: comment,
         typeOfDelivery: value,
       });
@@ -40,26 +48,34 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
     }
 
     setLoading(false);
-    setVisible(false);
+    setVisible((prev) => ({
+      ...prev,
+      employeeUpdateDeliveryEventModalVisible: false,
+    }));
   };
 
   const Footer = () => (
     <Row justify="center">
-      <Button type="primary" onClick={createEvent} loading={loading}>
-        Confirm
+      <Button type="primary" onClick={updateEvent} loading={loading}>
+        Update
       </Button>
     </Row>
   );
 
   const Title = () => (
     <Row justify="center">
-      <h3>Delivery</h3>
+      <h3>Update Delivery</h3>
     </Row>
   );
   return (
     <Modal
       visible={visible}
-      onCancel={() => setVisible(false)}
+      onCancel={() =>
+        setVisible((prev) => ({
+          ...prev,
+          employeeUpdateDeliveryEventModalVisible: false,
+        }))
+      }
       footer={<Footer />}
       title={<Title />}
     >
@@ -87,19 +103,33 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
           ))}
         </Radio.Group>
       </p>
-      <b>Comments:</b>
+      <b>Volunteer Comment:</b>
       <CommentTextArea
         value={comment}
         onChange={(event) => setComment(event.target.value)}
       />
+      <b>Employee Comment:</b>
+      <CommentTextArea
+        value={employeeComment}
+        onChange={(event) => setEmployeeComment(event.target.value)}
+      />
+      <Checkbox
+        checked={checked}
+        onChange={(event) => setChecked(event.target.checked)}
+      >
+        Volunteer did not show up for this event.
+      </Checkbox>
     </Modal>
   );
 };
 
-CreateDeliveryEventModal.propTypes = {
+UpdateDeliveryEventModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   setVisible: PropTypes.func.isRequired,
   date: PropTypes.object.isRequired,
+  getEvents: PropTypes.func.isRequired,
+  eventInfo: PropTypes.object.isRequired,
+  volunteerInfo: PropTypes.object.isRequired,
 };
 
-export default CreateDeliveryEventModal;
+export default UpdateDeliveryEventModal;
