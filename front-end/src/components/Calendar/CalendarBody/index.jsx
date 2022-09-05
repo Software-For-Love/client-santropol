@@ -6,6 +6,7 @@ import moment from "moment";
 import { Col } from "antd";
 import CalendarCell from "../CalendarCell";
 import { AuthContext } from "../../../Contexts/AuthContext";
+import AxiosInstance from "../../../API/api";
 
 const CalendarBody = (props) => {
   const { userType } = useContext(AuthContext);
@@ -18,9 +19,10 @@ const CalendarBody = (props) => {
     const result = [[], [], [], [], [], [], []];
     const newButtonColors = [...buttonColors];
 
-    info.forEach(({ data }) => {
+    info.forEach(({ data,id }) => {
+      
       const { event_date, first_name, last_name } = data;
-
+      const event_id = id;
       const year = event_date.toString().substring(0, 2);
       const month = event_date.toString().substring(2, 4);
       const day = event_date.toString().substring(4, 6);
@@ -32,7 +34,8 @@ const CalendarBody = (props) => {
       const eventIndex = eventDate.weekday();
       // add to the result array
       result[eventIndex].push({
-        ...data,
+        data,
+        event_id,
         volunteerInfo: {
           firstName: first_name,
           lastName: last_name,
@@ -42,6 +45,8 @@ const CalendarBody = (props) => {
 
     // We need to have minimum of three events per day
     result.forEach((dailyEvents, index) => {
+     const todaysDate =  moment(startOfWeek).add(index,'days');
+
       const length = 3 - dailyEvents.length; // number of empty events needed to fill up the column
 
       if (length > 0) {
@@ -52,7 +57,7 @@ const CalendarBody = (props) => {
       }
       for (let i = 0; i < length; i++) {
         dailyEvents.push({
-          event_date: null,
+          event_date: todaysDate.format("YYMMDD"),
           first_name: null,
           last_name: null,
         });
@@ -70,6 +75,19 @@ const CalendarBody = (props) => {
   const plusIconClickHandler = (index) => {
     const newNumberOfCells = [...events];
     newNumberOfCells[index].push({});
+    AxiosInstance.post("/events/setEventGroup", {
+      eventType: variant,
+      eventDate: parseInt(newNumberOfCells[index][0].event_date),
+      slots:  newNumberOfCells[index].length
+    });
+    AxiosInstance.get("/events/getWeeklyEventSlots", {
+      params: {
+        eventDate: date.startOf("week").format("YYMMDD"),
+        eventType: variant,
+      },
+    });
+    console.log("Event type: "+ variant);
+    console.log("Clicked: " + newNumberOfCells[index][0].event_date);
     setEvents(newNumberOfCells);
   };
 
@@ -105,10 +123,12 @@ const CalendarBody = (props) => {
                 date={day}
                 volunteerInfo={item.volunteerInfo}
                 variant={variant}
+                event_id = {item.event_id}
+                data = {item}
                 getEvents={getEvents}
               />
             ))}
-            {userType === "admin" && (
+            {userType === "admin" &&(
               <PlusIcon
                 onClick={() => {
                   plusIconClickHandler(i);

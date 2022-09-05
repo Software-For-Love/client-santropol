@@ -18,7 +18,7 @@ const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
   const createEvent = async () => {
     setLoading(true);
     try {
-      const userNameArray = user.displayName.split(" ");
+      const userNameArray = user.displayName? user.displayName.split(" "): "Test User".split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
 
@@ -66,7 +66,6 @@ const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
       </p>
       <p>
         <strong>Time: </strong>
-        8AM - 11:30AM
         {shiftTime === "AM" ? "9:30AM - 12:30AM" : "1:30PM - 4:30PM"}
       </p>
       <b>Comments:</b>

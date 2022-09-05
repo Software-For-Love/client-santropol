@@ -12,6 +12,7 @@ const CalendarComponent = (props) => {
   const [date, setDate] = useState(moment());
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState([]);
+  const [eventSlots, setEventSlots] = useState([]);
 
   const getEvents = async () => {
     setLoading(true);
@@ -21,8 +22,23 @@ const CalendarComponent = (props) => {
           eventDate: date.startOf("week").format("YYYY-MM-DD"),
           eventType: variant,
         },
+        
       });
       setEvents(data.result);
+    } catch (err) {
+      console.log(err);
+    }
+    try {
+      console.log("Event group request called");
+      const { data } = await AxiosInstance.get("/events/getWeeklyEventSlots", {
+        params: {
+          eventDate: date.format("YYMMDD"),
+          eventType: variant,
+        },
+        
+      });
+      setEventSlots(data.result);
+
     } catch (err) {
       console.log(err);
     }

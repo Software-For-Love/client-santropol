@@ -19,6 +19,6 @@
     "express": "^4.17.3",
     "firebase": "^9.6.7",
     "firebase-admin": "^10.0.2",
-    "moment": "^2.29.3"
+    "moment": "^2.29.4"
   }
 }
