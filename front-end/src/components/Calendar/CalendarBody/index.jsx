@@ -123,7 +123,7 @@ const CalendarBody = (props) => {
                 date={day}
                 volunteerInfo={item.volunteerInfo}
                 variant={variant}
-                event_id= {item.event_id}
+                event_id = {item.event_id}
                 data = {item}
                 getEvents={getEvents}
               />
