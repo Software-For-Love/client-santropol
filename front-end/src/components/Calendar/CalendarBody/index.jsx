@@ -6,10 +6,11 @@ import moment from "moment";
 import { Col } from "antd";
 import CalendarCell from "../CalendarCell";
 import { AuthContext } from "../../../Contexts/AuthContext";
+import AxiosInstance from "../../../API/api";
 
 const CalendarBody = (props) => {
   const { userType } = useContext(AuthContext);
-  const { date, info, variant, getEvents } = props;
+  const { date, info, variant, getEvents, eventSlots } = props;
   const startOfWeek = moment(date).startOf("week");
   const [events, setEvents] = useState([[], [], [], [], [], [], []]);
   const [buttonColors, setButtonColors] = useState([]); // each day has a button color depending on if all the events are full or not
@@ -18,9 +19,9 @@ const CalendarBody = (props) => {
     const result = [[], [], [], [], [], [], []];
     const newButtonColors = [...buttonColors];
 
-    info.forEach(({ data }) => {
+    info.forEach(({ data, id }) => {
       const { event_date, first_name, last_name } = data;
-
+      const event_id = id;
       const year = event_date.toString().substring(0, 2);
       const month = event_date.toString().substring(2, 4);
       const day = event_date.toString().substring(4, 6);
@@ -32,7 +33,8 @@ const CalendarBody = (props) => {
       const eventIndex = eventDate.weekday();
       // add to the result array
       result[eventIndex].push({
-        ...data,
+        data,
+        event_id,
         volunteerInfo: {
           firstName: first_name,
           lastName: last_name,
@@ -42,7 +44,20 @@ const CalendarBody = (props) => {
 
     // We need to have minimum of three events per day
     result.forEach((dailyEvents, index) => {
-      const length = 3 - dailyEvents.length; // number of empty events needed to fill up the column
+      const todaysDate = moment(startOfWeek).add(index, "days");
+
+      const todaysEventSlots = eventSlots.find((eventSlot) => {
+        return (
+          eventSlot.data.dateNumber === parseInt(todaysDate.format("YYMMDD"))
+        );
+      });
+
+      let slotNumber = 6;
+      if (todaysEventSlots && todaysEventSlots.data.slots > 6) {
+        slotNumber = todaysEventSlots.data.slots;
+      }
+
+      const length = slotNumber - dailyEvents.length; // number of empty events needed to fill up the column
 
       if (length > 0) {
         // if we need to add empty events to the column it means we have to change the button color
@@ -52,7 +67,7 @@ const CalendarBody = (props) => {
       }
       for (let i = 0; i < length; i++) {
         dailyEvents.push({
-          event_date: null,
+          event_date: todaysDate.format("YYMMDD"),
           first_name: null,
           last_name: null,
         });
@@ -67,9 +82,23 @@ const CalendarBody = (props) => {
     getDailyEvents();
   }, [getDailyEvents]);
 
-  const plusIconClickHandler = (index) => {
+  const plusIconClickHandler = async (index) => {
     const newNumberOfCells = [...events];
     newNumberOfCells[index].push({});
+    await AxiosInstance.post("/events/setEventGroup", {
+      eventType: variant,
+      eventDate: parseInt(newNumberOfCells[index][0].event_date),
+      slots: newNumberOfCells[index].length,
+    });
+    const { data } = await AxiosInstance.get("/events/getWeeklyEventSlots", {
+      params: {
+        eventDate: date.startOf("week").format("YYMMDD"),
+        eventType: variant,
+      },
+    });
+    console.log(data, "weekly events");
+    console.log("Event type: " + variant);
+    console.log("Clicked: " + newNumberOfCells[index][0].event_date);
     setEvents(newNumberOfCells);
   };
 
@@ -106,6 +135,8 @@ const CalendarBody = (props) => {
                 volunteerInfo={item.volunteerInfo}
                 eventInfo={item}
                 variant={variant}
+                event_id={item.event_id}
+                data={item}
                 getEvents={getEvents}
               />
             ))}
@@ -127,6 +158,7 @@ CalendarBody.propTypes = {
   date: PropTypes.object.isRequired,
   info: PropTypes.array,
   variant: PropTypes.string,
+  eventSlots: PropTypes.array,
 };
 
 export default CalendarBody;

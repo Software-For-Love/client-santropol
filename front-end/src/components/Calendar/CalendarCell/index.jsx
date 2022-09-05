@@ -16,6 +16,7 @@ import BicycleIcon from "../../../assets/bicycle.svg";
 import OnFootIcon from "../../../assets/on-foot.svg";
 import DeleteIcon from "../../../assets/close.svg";
 import { AuthContext } from "../../../Contexts/AuthContext";
+import AxiosInstance from "../../../API/api";
 
 const DELIVERY_ICONS = {
   "Own Car": CarIcon,
@@ -96,8 +97,15 @@ const CalendarCell = (props) => {
   return (
     <>
       <Cell onClick={onClickHandler}>
-        {userType === "admin" && volunteerInfo && (
-          <DeleteButton src={DeleteIcon} alt="delete shift" />
+        {userType === "admin" && volunteerInfo &&  (
+          <DeleteButton src={DeleteIcon} alt="delete shift" onClick={async ()=>{
+             const event_id = props.event_id;
+             await AxiosInstance.post("/events/deleteEvent", {
+             event_id
+            });
+            getEvents();
+            }
+          }/>
         )}
         {volunteerInfo && (
           <>
