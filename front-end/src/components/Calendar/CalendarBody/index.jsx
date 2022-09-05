@@ -128,7 +128,7 @@ const CalendarBody = (props) => {
                 getEvents={getEvents}
               />
             ))}
-            {(
+            {userType === "admin" &&(
               <PlusIcon
                 onClick={() => {
                   plusIconClickHandler(i);
