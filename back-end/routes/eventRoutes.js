@@ -330,8 +330,6 @@ eventRouter.post("/editEvent", async (req, res) => {
   @param role: Role of the user making the request -> volunteer, staff, or admin
   @param uid
   @param reason: The reason for the cancellation
-  Optional bodyParam:
-
 */
 eventRouter.post("/removeUserFromEvent", async (req, res) => {
   let db = getFirestore();
@@ -384,7 +382,7 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
 */
 eventRouter.get("/getUserPastEvents", async (req, res) => {
   let q;
-  //Checking if user is staff, or if volunteer, then that person ONLY accessing their own data
+  //Checking if user is staff.  if volunteer, then that person ONLY accessing their own data
   if (req.body.uid && (req.body.role == "staff" || req.body.role == "admin" || req.body.uid == req.user.uid)) {
     const db = getFirestore();
     if (req.query.event_status == acceptedEventStates[1]) {
