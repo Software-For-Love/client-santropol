@@ -23,6 +23,7 @@ class Event {
         }
       }
     }
+
   constructor(){
       this.event_date = "";
       this.event_date_txt = "";

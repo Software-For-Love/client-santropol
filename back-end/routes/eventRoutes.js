@@ -11,7 +11,14 @@ const {
   collection,
   query,
   where,
+  addDoc,
+  getDoc
 } = require("firebase/firestore");
+const { getAuth } = require("firebase/auth");
+const acceptedEventStates = ["completed", "cancelled"];
+const { Event } = require("../../models/event");
+const { deliveryEvent } = require("../../models/deliveryEvent");
+const e = require("express");
 
 eventRouter.post("/setEventGroup", async (req, res) => {
   const db = getFirestore();
@@ -312,6 +319,146 @@ eventRouter.post("/editEvent", async (req, res) => {
 
   //get all the events for the current week
 });
+
+/** 
+ * @description:
+  Remove a user from their assigned event. A user can do this, as long as the event is not two days before the event. 
+  If so, staff/admin will need to be contacted.
+  Copy the event to the user_cancelled_event location in the db in order to keep track of user cancelled events
+  
+  @param key: The key of the unique event in firestore that is having the current user removed
+  @param role: Role of the user making the request -> volunteer, staff, or admin
+  @param uid
+  @param reason: The reason for the cancellation
+*/
+eventRouter.post("/removeUserFromEvent", async (req, res) => {
+  let db = getFirestore();
+  let eventCollectionRef = collection(db, "event");
+  let q;
+  let event;
+  let cancel_event;
+  try {
+  if(req.body.key && req.body.role){
+    q = query(eventCollectionRef,where("key", "==", req.body.key));
+    event = (await getDocsWrapper(q))[0];
+  }
+  else {
+    res.status(400).json({success: false, result: "No valid body parameters"})
+  }
+  if (!event) {
+    res.status(404).json({success: false, result: "No returned values"});
+  }
+  //Can only remove as a volunteer if greater than 2 days away, staff/admin can remove anytime. Considered cancelled
+  else if (req.body.role == "volunteer" && (event.data().event_date - getDateNumber(new Date()) < 2 || req.body.uid != req.user.uid)) {
+    res.status(403).json({ success: false, result: "Not allowed to remove, contact staff" });
+  } 
+  else {
+    cancel_event =  {event_id: event.id, uid: req.body.uid, reason: req.body.reason ? req.body.reason: "" }
+    await updateDoc(event.ref, { uid: "" });
+    await addDoc(collection(db, "user_cancelled_event"), cancel_event);
+    res.status(200).json({ success: true, result: cancel_event });
+  }
+  }
+   catch (e) {
+    console.log(e);
+    res.status(400).json({ success: false, result: e });
+  }
+
+});
+
+
+/** 
+ * @description:
+  Request to get events depending on a user.
+  Can include query parameters to get completed or cancelled events. 
+  This route is accessible by ALL staff/admin, not by any volunteers
+* 
+* @BodyParameters
+* @param uid    The user ID whose past events are in question
+*  @param role   The role of the current user making the request (SHOULD also be added to user object in db)
+* 
+* @queryParameters
+* @param event_status   Values -> completed or cancelled
+*/
+eventRouter.get("/getUserPastEvents", async (req, res) => {
+  let q;
+  //Checking if user is staff.  if volunteer, then that person ONLY accessing their own data
+  if (req.body.uid && (req.body.role == "staff" || req.body.role == "admin" || req.body.uid == req.user.uid)) {
+    const db = getFirestore();
+    if (req.query.event_status == acceptedEventStates[1]) {
+       q = query(
+        collection(db, "user_cancelled_event"),
+        where("uid", "==", req.body.uid)
+      );
+      getDocsWrapper(q).then((results) => res.status(200).json({ result: results.map(val => val.data())}))
+      .catch((err) => res.status(400).json({ success: false, result: err }));
+    } 
+    else if (req.query.event_status == acceptedEventStates[0]) {
+       q = query(
+        collection(db, "event"),
+        where(req.query.event_status, "==", true),
+        where("uid", "==", req.body.uid)
+      );
+      getDocsWrapper(q).then((results) => res.status(200).json({ result: results.map(val => val.data()) }))
+      .catch((err) => res.status(400).json({ success: false, result: err }));
+    } 
+    //If no query is supplied, give both cancelled and past events
+    else {
+      q = query(
+        collection(db, "event"),
+        where("uid", "==", req.body.uid)
+      );
+      let q2 = query(
+        collection(db, "user_cancelled_event"),
+        where("uid", "==", req.body.uid)
+      );
+      try{
+        let result1 = await getDocsWrapper(q);
+        let result2 = await getDocsWrapper(q2);
+        res.status(200).json({success: true, result: {...result1.map(val => val.data()), ...result2.map(val => val.data())}});
+      } catch(err){
+        res.status(400).json({ success: false, result: err });
+      }
+    }
+  } else {
+    res.status(403).json({success: false, result: "Not authorized to get this user's data"});
+  }
+});
+
+function getDocsWrapper(query) {
+  return getDocs(query)
+    .then((querySnapshot) => {
+      let results = [];
+      querySnapshot.docs.forEach((doc) => {
+        results.push(doc);
+      });
+      return results;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    }); 
+}
+
+
+function getDateNumber(date) {
+  let month = "";
+  let day = "";
+  if (date.getMonth() + 1 < 10) {
+    month = "0" + (date.getMonth() + 1).toString();
+  }
+  else {
+    month = (date.getMonth() + 1).toString();
+  }
+  if (date.getDate() < 10) {
+    day = "0" + date.getDate().toString();
+  }
+  else {
+    day = date.getDate().toString();
+  }
+  let dateString = (date.getFullYear().toString()).substring(2, 4) + month + day;
+  let intDate = +dateString;
+  return intDate;
+}
 
 eventRouter.post("/deleteEvent", async (req, res) => {
   const db = getFirestore();
