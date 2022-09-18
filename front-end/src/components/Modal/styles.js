@@ -19,4 +19,5 @@ export const CommentTextArea = styled(Input.TextArea).attrs(() => ({
   rows: 3,
 }))`
   margin-top: 8px;
+  margin-bottom: 8px;
 `;
