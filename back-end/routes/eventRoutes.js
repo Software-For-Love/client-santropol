@@ -12,7 +12,7 @@ const {
   query,
   where,
   addDoc,
-  getDoc
+  getDoc,
 } = require("firebase/firestore");
 const { getAuth } = require("firebase/auth");
 const acceptedEventStates = ["completed", "cancelled"];
@@ -338,34 +338,44 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
   let event;
   let cancel_event;
   try {
-  if(req.body.key && req.body.role){
-    q = query(eventCollectionRef,where("key", "==", req.body.key));
-    event = (await getDocsWrapper(q))[0];
-  }
-  else {
-    res.status(400).json({success: false, result: "No valid body parameters"})
-  }
-  if (!event) {
-    res.status(404).json({success: false, result: "No returned values"});
-  }
-  //Can only remove as a volunteer if greater than 2 days away, staff/admin can remove anytime. Considered cancelled
-  else if (req.body.role == "volunteer" && (event.data().event_date - getDateNumber(new Date()) < 2 || req.body.uid != req.user.uid)) {
-    res.status(403).json({ success: false, result: "Not allowed to remove, contact staff" });
-  } 
-  else {
-    cancel_event =  {event_id: event.id, uid: req.body.uid, reason: req.body.reason ? req.body.reason: "" }
-    await updateDoc(event.ref, { uid: "" });
-    await addDoc(collection(db, "user_cancelled_event"), cancel_event);
-    res.status(200).json({ success: true, result: cancel_event });
-  }
-  }
-   catch (e) {
+    if (req.body.key && req.body.role) {
+      q = query(eventCollectionRef, where("key", "==", req.body.key));
+      event = (await getDocsWrapper(q))[0];
+    } else {
+      res
+        .status(400)
+        .json({ success: false, result: "No valid body parameters" });
+    }
+    if (!event) {
+      res.status(404).json({ success: false, result: "No returned values" });
+    }
+    //Can only remove as a volunteer if greater than 2 days away, staff/admin can remove anytime. Considered cancelled
+    else if (
+      req.body.role == "volunteer" &&
+      (event.data().event_date - getDateNumber(new Date()) < 2 ||
+        req.body.uid != req.user.uid)
+    ) {
+      res
+        .status(403)
+        .json({
+          success: false,
+          result: "Not allowed to remove, contact staff",
+        });
+    } else {
+      cancel_event = {
+        event_id: event.id,
+        uid: req.body.uid,
+        reason: req.body.reason ? req.body.reason : "",
+      };
+      await updateDoc(event.ref, { uid: "" });
+      await addDoc(collection(db, "user_cancelled_event"), cancel_event);
+      res.status(200).json({ success: true, result: cancel_event });
+    }
+  } catch (e) {
     console.log(e);
     res.status(400).json({ success: false, result: e });
   }
-
 });
-
 
 /** 
  * @description:
@@ -383,45 +393,65 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
 eventRouter.get("/getUserPastEvents", async (req, res) => {
   let q;
   //Checking if user is staff.  if volunteer, then that person ONLY accessing their own data
-  if (req.body.uid && (req.body.role == "staff" || req.body.role == "admin" || req.body.uid == req.user.uid)) {
+  if (
+    req.body.uid &&
+    (req.body.role == "staff" ||
+      req.body.role == "admin" ||
+      req.body.uid == req.user.uid)
+  ) {
     const db = getFirestore();
     if (req.query.event_status == acceptedEventStates[1]) {
-       q = query(
+      q = query(
         collection(db, "user_cancelled_event"),
         where("uid", "==", req.body.uid)
       );
-      getDocsWrapper(q).then((results) => res.status(200).json({ result: results.map(val => val.data())}))
-      .catch((err) => res.status(400).json({ success: false, result: err }));
-    } 
-    else if (req.query.event_status == acceptedEventStates[0]) {
-       q = query(
+      getDocsWrapper(q)
+        .then((results) =>
+          res.status(200).json({ result: results.map((val) => val.data()) })
+        )
+        .catch((err) => res.status(400).json({ success: false, result: err }));
+    } else if (req.query.event_status == acceptedEventStates[0]) {
+      q = query(
         collection(db, "event"),
         where(req.query.event_status, "==", true),
         where("uid", "==", req.body.uid)
       );
-      getDocsWrapper(q).then((results) => res.status(200).json({ result: results.map(val => val.data()) }))
-      .catch((err) => res.status(400).json({ success: false, result: err }));
-    } 
+      getDocsWrapper(q)
+        .then((results) =>
+          res.status(200).json({ result: results.map((val) => val.data()) })
+        )
+        .catch((err) => res.status(400).json({ success: false, result: err }));
+    }
     //If no query is supplied, give both cancelled and past events
     else {
-      q = query(
-        collection(db, "event"),
-        where("uid", "==", req.body.uid)
-      );
+      q = query(collection(db, "event"), where("uid", "==", req.body.uid));
       let q2 = query(
         collection(db, "user_cancelled_event"),
         where("uid", "==", req.body.uid)
       );
-      try{
+      try {
         let result1 = await getDocsWrapper(q);
         let result2 = await getDocsWrapper(q2);
-        res.status(200).json({success: true, result: {...result1.map(val => val.data()), ...result2.map(val => val.data())}});
-      } catch(err){
+        res
+          .status(200)
+          .json({
+            success: true,
+            result: {
+              ...result1.map((val) => val.data()),
+              ...result2.map((val) => val.data()),
+            },
+          });
+      } catch (err) {
         res.status(400).json({ success: false, result: err });
       }
     }
   } else {
-    res.status(403).json({success: false, result: "Not authorized to get this user's data"});
+    res
+      .status(403)
+      .json({
+        success: false,
+        result: "Not authorized to get this user's data",
+      });
   }
 });
 
@@ -436,26 +466,23 @@ function getDocsWrapper(query) {
     })
     .catch((err) => {
       throw new Error(err);
-    }); 
+    });
 }
-
 
 function getDateNumber(date) {
   let month = "";
   let day = "";
   if (date.getMonth() + 1 < 10) {
     month = "0" + (date.getMonth() + 1).toString();
-  }
-  else {
+  } else {
     month = (date.getMonth() + 1).toString();
   }
   if (date.getDate() < 10) {
     day = "0" + date.getDate().toString();
-  }
-  else {
+  } else {
     day = date.getDate().toString();
   }
-  let dateString = (date.getFullYear().toString()).substring(2, 4) + month + day;
+  let dateString = date.getFullYear().toString().substring(2, 4) + month + day;
   let intDate = +dateString;
   return intDate;
 }

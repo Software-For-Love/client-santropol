@@ -8,6 +8,7 @@ import {
   VolunteerUpdateKitchenEventModal,
   EmployeeUpdateDeliveryEventModal,
   EmployeeUpdateKitchenEventModal,
+  RemoveUserFromEventModal,
 } from "../../Modal";
 import { Typography, Tooltip, message } from "antd";
 import MissedShiftIcon from "../../../assets/missed-shift-icon.svg";
@@ -16,7 +17,6 @@ import BicycleIcon from "../../../assets/bicycle.svg";
 import OnFootIcon from "../../../assets/on-foot.svg";
 import DeleteIcon from "../../../assets/close.svg";
 import { AuthContext } from "../../../Contexts/AuthContext";
-import AxiosInstance from "../../../API/api";
 
 const DELIVERY_ICONS = {
   "Own Car": CarIcon,
@@ -28,6 +28,11 @@ const DELIVERY_ICONS = {
 const CalendarCell = (props) => {
   const { userType, user } = useContext(AuthContext);
   const { date, volunteerInfo, eventInfo, variant, getEvents } = props;
+  //show close icon to admin users for assigned shifts
+  //or to volunteer users for their own shifts
+  const closeIconVisible =
+    (userType === "admin" && volunteerInfo) ||
+    eventInfo?.data?.uid === user.uid;
   const [modalVisibility, setModalVisibility] = useState({
     volunteerCreateKitchenEventModalVisible: false,
     volunteerUpdateKitchenEventModalVisible: false,
@@ -35,9 +40,12 @@ const CalendarCell = (props) => {
     volunteerUpdateDeliveryEventModalVisible: false,
     employeeUpdateDeliveryEventModalVisible: false,
     employeeUpdateKitchenEventModalVisible: false,
+    removeUserFromEventModalVisible: false,
   });
 
   const onClickHandler = () => {
+    console.log("clicked");
+
     if (userType === "volunteer") {
       if (volunteerInfo) {
         // Volunteers can only update their own events.
@@ -70,16 +78,20 @@ const CalendarCell = (props) => {
         }
       }
     } else {
-      if (variant === "deliv") {
-        setModalVisibility({
-          ...modalVisibility,
-          employeeUpdateDeliveryEventModalVisible: true,
-        });
+      if (volunteerInfo) {
+        if (variant === "deliv") {
+          setModalVisibility({
+            ...modalVisibility,
+            employeeUpdateDeliveryEventModalVisible: true,
+          });
+        } else {
+          setModalVisibility({
+            ...modalVisibility,
+            employeeUpdateKitchenEventModalVisible: true,
+          });
+        }
       } else {
-        setModalVisibility({
-          ...modalVisibility,
-          employeeUpdateKitchenEventModalVisible: true,
-        });
+        message.error("No volunteer assigned to this shift.");
       }
     }
   };
@@ -96,34 +108,47 @@ const CalendarCell = (props) => {
 
   return (
     <>
-      <Cell onClick={onClickHandler}>
-        {userType === "admin" && volunteerInfo &&  (
-          <DeleteButton src={DeleteIcon} alt="delete shift" onClick={async ()=>{
-             const event_id = props.event_id;
-             await AxiosInstance.post("/events/deleteEvent", {
-             event_id
-            });
-            getEvents();
+      <Cell>
+        {closeIconVisible && (
+          <DeleteButton
+            src={DeleteIcon}
+            alt="delete shift"
+            onClick={() =>
+              setModalVisibility((prev) => ({
+                ...prev,
+                removeUserFromEventModalVisible: true,
+              }))
             }
-          }/>
+          />
         )}
-        {volunteerInfo && (
-          <>
-            {volunteerInfo.missedShifts && userType === "admin" && (
-              <MissedShiftIndicator />
-            )}
-            {volunteerInfo.deliveryType && (
-              <DeliveryTypeIndicator
-                deliveryType={volunteerInfo.deliveryType}
-              />
-            )}
-            <Typography.Text style={{ fontSize: "1rem" }}>
-              {`${volunteerInfo.firstName || "No Data"} ${
-                volunteerInfo.lastName ? `${volunteerInfo.lastName[0]}.` : ""
-              }`}
-            </Typography.Text>
-          </>
-        )}
+        <div
+          onClick={onClickHandler}
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "flex-start",
+            alignItems: "center",
+          }}
+        >
+          {volunteerInfo && (
+            <>
+              {volunteerInfo.missedShifts && userType === "admin" && (
+                <MissedShiftIndicator />
+              )}
+              {volunteerInfo.deliveryType && (
+                <DeliveryTypeIndicator
+                  deliveryType={volunteerInfo.deliveryType}
+                />
+              )}
+              <Typography.Text style={{ fontSize: "1rem" }}>
+                {`${volunteerInfo.firstName || "No Data"} ${
+                  volunteerInfo.lastName ? `${volunteerInfo.lastName[0]}.` : ""
+                }`}
+              </Typography.Text>
+            </>
+          )}
+        </div>
       </Cell>
       <VolunteerCreateKitchenEventModal
         visible={modalVisibility.volunteerCreateKitchenEventModalVisible}
@@ -168,6 +193,13 @@ const CalendarCell = (props) => {
         getEvents={getEvents}
         eventInfo={eventInfo}
         volunteerInfo={volunteerInfo}
+      />
+      <RemoveUserFromEventModal
+        visible={modalVisibility.removeUserFromEventModalVisible}
+        setVisible={setModalVisibility}
+        date={date}
+        getEvents={getEvents}
+        eventInfo={eventInfo}
       />
     </>
   );

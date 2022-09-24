@@ -27,4 +27,9 @@ export const DeleteButton = styled.img`
   position: absolute;
   top: 10px;
   right: 10px;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.5;
+  }
 `;
