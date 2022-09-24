@@ -44,8 +44,6 @@ const CalendarCell = (props) => {
   });
 
   const onClickHandler = () => {
-    console.log("clicked");
-
     if (userType === "volunteer") {
       if (volunteerInfo) {
         // Volunteers can only update their own events.

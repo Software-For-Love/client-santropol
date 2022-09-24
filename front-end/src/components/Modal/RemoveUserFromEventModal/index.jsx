@@ -17,6 +17,8 @@ const RemoveUserFromEventModal = ({
   const { user, userType } = useContext(AuthContext);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
+  // if the shift is less than 2 days away, the volunteer cannot cancel
+  const isCancellable = moment(date).diff(moment(), "days") > 1;
 
   const removeUserFromEvent = async () => {
     setLoading(true);
@@ -42,8 +44,24 @@ const RemoveUserFromEventModal = ({
   };
 
   const Footer = () => (
-    <Row justify="center">
-      <Button type="primary" onClick={removeUserFromEvent} loading={loading}>
+    <Row
+      justify="center"
+      style={{
+        textAlign: "center",
+      }}
+    >
+      {!isCancellable && (
+        <p>
+          Please note that you can only cancel your shift 2 days in advance. If
+          you want to cancel it, please contact a Santropol Roulant employee.
+        </p>
+      )}
+      <Button
+        type="primary"
+        onClick={removeUserFromEvent}
+        loading={loading}
+        disabled={!isCancellable}
+      >
         Remove
       </Button>
     </Row>
@@ -74,6 +92,7 @@ const RemoveUserFromEventModal = ({
 
       <b>Cancel Reason:</b>
       <CommentTextArea
+        disabled={!isCancellable}
         value={reason}
         onChange={(event) => setReason(event.target.value)}
       />
