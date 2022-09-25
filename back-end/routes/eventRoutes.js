@@ -449,8 +449,6 @@ eventRouter.post("/deleteEvent", async (req, res) => {
       res.json({ success: true, result: "Event Delete Success" });
     });
   return;
-
-  //get all the events for the current week
 });
 
 module.exports = eventRouter;
