@@ -21,9 +21,6 @@ const CreateKitchenEventModal = ({
   const shiftTime = window.location.pathname.includes("kitchen-am")
     ? "AM"
     : "PM";
-
-  console.log(volunteerInfo);
-
   const updateEvent = async () => {
     setLoading(true);
     try {
