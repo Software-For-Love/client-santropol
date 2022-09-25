@@ -17,6 +17,7 @@ steps:
     - 'ADMIN_PRIVATE_KEY=${_ADMIN_PRIVATE_KEY}'
     - 'ADMIN_PRIVATE_KEY_ID=${_ADMIN_PRIVATE_KEY_ID}'
     - 'ADMIN_TOKEN_URI=${_ADMIN_TOKEN_URI}'
+    - 'AIR_TABLE_API=${_AIR_TABLE_API}'
     - 'PORT=${2000}'
 
 - name: "gcr.io/cloud-builders/gcloud"
