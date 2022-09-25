@@ -1,0 +1,22 @@
+steps:
+- name: node:10.15.1
+  entrypoint: npm
+  args: ["install"]
+- name: node:10.15.1
+  entrypoint: npm
+  args: ["run", "create-env"]
+  env:
+    - 'ADMIN_ACC_TYPE=${_ADMIN_ACC_TYPE}'
+    - 'ADMIN_AUTH_PROVIDER_CERTL_URL=${_ADMIN_AUTH_PROVIDER_CERTL_URL}'
+    - 'ADMIN_AUTH_URI=${_ADMIN_AUTH_URI}'
+    - 'ADMIN_CLIENT_CERT_URL=${_ADMIN_CLIENT_CERT_URL}'
+    - 'ADMIN_CLIENT_EMAIL=${_ADMIN_CLIENT_EMAIL}'
+    - 'ADMIN_CLIENT_ID=${_ADMIN_CLIENT_ID}'
+    - 'ADMIN_PRIVATE_KEY=${_ADMIN_PRIVATE_KEY}'
+    - 'ADMIN_PRIVATE_KEY_ID=${_ADMIN_PRIVATE_KEY_ID}'
+    - 'ADMIN_TOKEN_URI=${_ADMIN_TOKEN_URI}'
+    - 'PORT=${2000}'
+
+- name: "gcr.io/cloud-builders/gcloud"
+  args: ["app", "deploy"]
+timeout: "1600s"
