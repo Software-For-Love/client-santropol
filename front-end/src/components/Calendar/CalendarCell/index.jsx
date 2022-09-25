@@ -97,7 +97,7 @@ const CalendarCell = (props) => {
   return (
     <>
       <Cell onClick={onClickHandler}>
-        {userType === "admin" && volunteerInfo &&  (
+        {(
           <DeleteButton src={DeleteIcon} alt="delete shift" onClick={async ()=>{
              const event_id = props.event_id;
              await AxiosInstance.post("/events/deleteEvent", {
