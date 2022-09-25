@@ -3,6 +3,9 @@ steps:
   entrypoint: npm
   args: ["install"]
   dir: 'back-end'
+- name: node:14.17.3
+  entrypoint: npm
+  args: ["run", "create-env"]
   env:
     - 'ADMIN_ACC_TYPE=${_ADMIN_ACC_TYPE}'
     - 'ADMIN_AUTH_PROVIDER_CERTL_URL=${_ADMIN_AUTH_PROVIDER_CERTL_URL}'
@@ -22,7 +25,6 @@ steps:
     - 'NODE_APP_APP_ID=${_NODE_APP_APP_ID}'
     - 'NODE_APP_MEAUSERMENT_ID=${_NODE_APP_MEAUSERMENT_ID}'
     - 'PORT=2000'
-
 - name: "gcr.io/cloud-builders/gcloud"
   args: ["app", "deploy"]
   dir: 'back-end'
