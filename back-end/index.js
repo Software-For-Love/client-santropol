@@ -24,7 +24,7 @@ const adminConfig = {
   type: process.env.ADMIN_ACC_TYPE,
   project_id: process.env.NODE_APP_PROJECT_ID,
   private_key_id: process.env.ADMIN_PRIVATE_KEY_ID,
-  private_key: process.env.ADMIN_PRIVATE_KEY,
+  private_key: process.env.ADMIN_PRIVATE_KEY.replace(/\\n/g, '\n'),
   client_email: process.env.ADMIN_CLIENT_EMAIL,
   client_id: process.env.ADMIN_CLIENT_ID,
   auth_uri: process.env.ADMIN_AUTH_URI,
@@ -32,6 +32,7 @@ const adminConfig = {
   auth_provider_x509_cert_url: process.env.ADMIN_AUTH_PROVIDER_CERTL_URL,
   client_x509_cert_url: process.env.ADMIN_CLIENT_CERT_URL,
 };
+
 
 console.debug(firebaseConfig)
 console.debug(adminConfig);
