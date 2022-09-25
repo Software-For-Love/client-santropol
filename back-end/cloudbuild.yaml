@@ -2,6 +2,7 @@ steps:
 - name: node:14.17.3
   entrypoint: npm
   args: ["install"]
+  dir:'back-end/'
 - name: node:14.17.3
   entrypoint: npm
   args: ["run", "start"]
