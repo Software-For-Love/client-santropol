@@ -33,6 +33,9 @@ const adminConfig = {
   client_x509_cert_url: process.env.ADMIN_CLIENT_CERT_URL,
 };
 
+console.debug(firebaseConfig)
+console.debug(adminConfig);
+
 initializeApp({
   credential: cert(adminConfig),
 });
