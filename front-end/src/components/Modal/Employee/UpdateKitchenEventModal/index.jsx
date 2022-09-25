@@ -16,7 +16,7 @@ const UpdateKitchenEventModal = ({
   eventInfo,
 }) => {
   const { user } = useContext(AuthContext);
-  const [comment, setComment] = useState(eventInfo?.user_comment || "");
+  const [comment, setComment] = useState(eventInfo?.data?.user_comment || "");
   const [employeeComment, setEmployeeComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -32,14 +32,15 @@ const UpdateKitchenEventModal = ({
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
 
-      await AxiosInstance.post("/events/createEvent", {
+      await AxiosInstance.post("/events/editEvent", {
         firstName,
         lastName,
         eventType: shiftTime === "AM" ? "kitam" : "kitpm",
         userId: user.uid,
+        slot: 4,
         eventDate: date.format("YYMMDD"),
         userComment: comment,
-        slot: 4,
+        event_id: eventInfo?.event_id,
       });
       getEvents();
     } catch (error) {

@@ -16,13 +16,11 @@ const CreateKitchenEventModal = ({
   eventInfo,
 }) => {
   const { user } = useContext(AuthContext);
-  const [comment, setComment] = useState(eventInfo?.user_comment || "");
+  const [comment, setComment] = useState(eventInfo?.data?.user_comment || "");
   const [loading, setLoading] = useState(false);
   const shiftTime = window.location.pathname.includes("kitchen-am")
     ? "AM"
     : "PM";
-
-  console.log(volunteerInfo);
 
   const updateEvent = async () => {
     setLoading(true);
@@ -31,14 +29,15 @@ const CreateKitchenEventModal = ({
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
 
-      await AxiosInstance.post("/events/createEvent", {
+      await AxiosInstance.post("/events/editEvent", {
         firstName,
         lastName,
         eventType: shiftTime === "AM" ? "kitam" : "kitpm",
         userId: user.uid,
+        slot: 4,
         eventDate: date.format("YYMMDD"),
         userComment: comment,
-        slot: 4,
+        event_id: eventInfo?.event_id,
       });
       getEvents();
     } catch (error) {

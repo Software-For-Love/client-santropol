@@ -17,8 +17,9 @@ const RemoveUserFromEventModal = ({
   const { user, userType } = useContext(AuthContext);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
-  // if the shift is less than 2 days away, the volunteer cannot cancel
-  const isCancellable = moment(date).diff(moment(), "days") > 1;
+  // if the shift is less than 2 days away, the volunteer cannot cancel, but admins can
+  const isCancellable =
+    userType === "admin" || moment(date).diff(moment(), "days") > 1;
 
   const removeUserFromEvent = async () => {
     setLoading(true);

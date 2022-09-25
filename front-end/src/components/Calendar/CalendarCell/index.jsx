@@ -13,6 +13,7 @@ import {
 import { Typography, Tooltip, message } from "antd";
 import MissedShiftIcon from "../../../assets/missed-shift-icon.svg";
 import CarIcon from "../../../assets/car.svg";
+import SRCarIcon from "../../../assets/sr-car.svg";
 import BicycleIcon from "../../../assets/bicycle.svg";
 import OnFootIcon from "../../../assets/on-foot.svg";
 import DeleteIcon from "../../../assets/close.svg";
@@ -20,7 +21,7 @@ import { AuthContext } from "../../../Contexts/AuthContext";
 
 const DELIVERY_ICONS = {
   "Own Car": CarIcon,
-  "SR Car": CarIcon,
+  "SR Car": SRCarIcon,
   Bike: BicycleIcon,
   Foot: OnFootIcon,
 };
@@ -47,7 +48,8 @@ const CalendarCell = (props) => {
     if (userType === "volunteer") {
       if (volunteerInfo) {
         // Volunteers can only update their own events.
-        if (eventInfo.uid !== user.uid) {
+        if (eventInfo?.data?.uid !== user.uid) {
+          console.log(eventInfo, user.uid);
           message.error("You can only see your own shifts.");
         } else {
           if (variant === "deliv") {

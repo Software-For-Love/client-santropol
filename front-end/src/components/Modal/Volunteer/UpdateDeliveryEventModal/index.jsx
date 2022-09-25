@@ -17,7 +17,7 @@ const CreateDeliveryEventModal = ({
 }) => {
   const { user } = useContext(AuthContext);
   const [value, setValue] = useState("Foot");
-  const [comment, setComment] = useState(eventInfo?.user_comment || "");
+  const [comment, setComment] = useState(eventInfo?.data?.user_comment || "");
   const [loading, setLoading] = useState(false);
 
   const onTypeOfDeliveryChange = (e) => {
@@ -30,7 +30,7 @@ const CreateDeliveryEventModal = ({
       const userNameArray = user.displayName.split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
-      await AxiosInstance.post("/events/createEvent", {
+      await AxiosInstance.post("/events/editEvent", {
         firstName,
         lastName,
         eventType: "deliv",
