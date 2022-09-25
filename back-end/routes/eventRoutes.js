@@ -71,11 +71,7 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
   } 
   else {
     cancel_event =  {event_id: event.id, uid: req.body.uid, reason: req.body.reason ? req.body.reason: "" }
-<<<<<<< HEAD
-    await updateDoc(event.ref, { uid: "" });
-=======
     await deleteDoc(event.ref)
->>>>>>> 320d649c28c67647524d6182771dd2200e5bd75e
     await addDoc(collection(db, "user_cancelled_event"), cancel_event);
     res.status(200).json({ success: true, result: cancel_event });
   }
