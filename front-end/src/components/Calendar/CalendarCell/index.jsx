@@ -41,9 +41,9 @@ const CalendarCell = (props) => {
     if (userType === "volunteer") {
       if (volunteerInfo) {
         // Volunteers can only update their own events.
-        if (eventInfo.uid !== user.uid) {
-          message.error("You can only see your own shifts.");
-        } else {
+        // if (eventInfo.uid !== user.uid) {
+        //   message.error("You can only see your own shifts.");
+        // } else {
           if (variant === "deliv") {
             setModalVisibility({
               ...modalVisibility,
@@ -55,7 +55,7 @@ const CalendarCell = (props) => {
               volunteerUpdateKitchenEventModalVisible: true,
             });
           }
-        }
+        // }
       } else {
         if (variant === "deliv") {
           setModalVisibility({

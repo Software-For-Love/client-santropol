@@ -27,7 +27,7 @@ const CreateDeliveryEventModal = ({
   const updateEvent = async () => {
     setLoading(true);
     try {
-      const userNameArray = user.displayName.split(" ");
+      const userNameArray = user.displayName? user.displayName.split(" "): "Test User".split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
       await AxiosInstance.post("/events/createEvent", {

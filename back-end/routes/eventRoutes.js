@@ -343,7 +343,7 @@ eventRouter.post("/createEvent", async (req, res) => {
   const eventType = req.body.eventType;
   const userId = req.body.userId;
   const slot = req.body.slot;
-  const typeOfDelivery = req.body.typeOfDelivery;
+  const typeOfDelivery = req.body.typeOfDelivery? req.body.typeOfDelivery: 'NA';
   const userType = req.body.userType? req.body.userType: "volunteer";
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
 
@@ -377,6 +377,7 @@ eventRouter.post("/createEvent", async (req, res) => {
     last_name: lastName,
     key: userEventRef.id,
     user_comment: userComment,
+    type_of_delivery: typeOfDelivery
   })
     .catch((err) => res.json({ success: false, result: err }))
     .then((writeResult) => {
@@ -414,6 +415,7 @@ eventRouter.post("/editEvent", async (req, res) => {
   const slot = req.body.slot;
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
   const userComment = req.body.userComment ? req.body.userComment : "";
+  const typeOfDelivery = req.body.typeOfDelivery? req.body.typeOfDelivery: 'NA';
 
   const db = getFirestore();
   var dbDate = parseInt(date);
@@ -427,6 +429,7 @@ eventRouter.post("/editEvent", async (req, res) => {
     first_name: firstName,
     last_name: lastName,
     user_comment: userComment,
+    type_of_delivery: typeOfDelivery
   })
     .catch((err) => res.json({ success: false, result: err }))
     .then((writeResult) => {
