@@ -14,6 +14,8 @@ const {
   where,
 } = require("firebase/firestore");
 
+const WEEKLY_EVENT_LIMIT = 3;
+
 eventRouter.post("/setEventGroup", async (req, res) => {
   const db = getFirestore();
   const eventType = req.body.eventType ? req.body.eventType : "kitam";
@@ -222,24 +224,17 @@ eventRouter.get("/getEvents", async (req, res) => {
   //Optional event type, default value is kitam
   let eventType = req.query.eventType ? req.query.eventType : "kitam";
   const db = getFirestore();
-  const today = req.query.eventDate
-    ? moment(req.query.eventDate).toDate()
-    : new Date();
-  
-  var nextweek = new Date( today.getFullYear(), today.getMonth(), today.getDate() + 6);
-  
-  var year = today.getFullYear() % 100;
-  var nextweekYear = nextweek.getFullYear() % 100;
+  const eventDate = req.query.eventDate;
+  if(eventDate.length != 6 ){
+    res.json({ success: false, error: "Invalid Date Provided" });
+  }
+  let dateYear = eventDate.substring(0, 2);
+  let dateMonth = eventDate.substring(2, 4);
+  let dateDay = eventDate.substring(4, 6);
+  let nextWeekDate = moment(`20${dateYear}-${dateMonth}-${dateDay}`).add(6, "days").format("YYMMDD");
 
-  var month = today.getMonth() + 1 < 10 
-  ? "0" + (today.getMonth() + 1).toString() : (today.getMonth() + 1).toString();
-  var nextweekMonth =  nextweek.getMonth() + 1 < 10  ? "0" + (nextweek.getMonth() + 1).toString() : nextweek.getMonth() + 1;
-  
-  var day = today.getDate() < 10 ? "0" + today.getDate().toString() : today.getDate();
-  var nextweekDay = nextweek.getDate() + 1 < 10 ? "0" + (nextweek.getDate()).toString(): nextweek.getDate() + 1;
-
-  var lowerDateBound = parseInt(year + month + day);
-  var upperDateBound = parseInt(nextweekYear + nextweekMonth + nextweekDay);
+  var lowerDateBound = parseInt(eventDate);
+  var upperDateBound = parseInt(nextWeekDate);
 
   var result = [];
   const q = query(
@@ -248,6 +243,7 @@ eventRouter.get("/getEvents", async (req, res) => {
     where("event_date", ">=", lowerDateBound),
     where("event_type", "==", eventType)
   );
+  try{
   await getDocs(q)
     .catch((err) => res.json({ success: false, result: err }))
     .then((querySnapshot) => {
@@ -258,6 +254,11 @@ eventRouter.get("/getEvents", async (req, res) => {
 
       res.json({ success: true, result });
     });
+  }
+  catch (e) {
+    console.log(e);
+    res.status(400).json({ success: false, result: e });
+  }
 
   //get all the events for the current week
 });
@@ -294,7 +295,7 @@ async function checkUserEventsLimit(userid, weekStartDate, endDate) {
     where("uid", "==", userid)
   );
   const results = await getDocs(q);
-  return results.size < 3;
+  return results.size < WEEKLY_EVENT_LIMIT;
 }
 
 function getDateNumber(date) {
@@ -343,7 +344,7 @@ eventRouter.post("/createEvent", async (req, res) => {
   const userId = req.body.userId;
   const slot = req.body.slot;
   const typeOfDelivery = req.body.typeOfDelivery;
-  const userType = req.body.userType;
+  const userType = req.body.userType? req.body.userType: "volunteer";
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
 
   const userComment = req.body.userComment ? req.body.userComment : "";
