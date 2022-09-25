@@ -1,10 +1,10 @@
 steps:
-- name: node:10.15.1
+- name: node:14.17.3
   entrypoint: npm
   args: ["install"]
-- name: node:10.15.1
+- name: node:14.17.3
   entrypoint: npm
-  args: ["run", "create-env"]
+  args: ["run", "start"]
   env:
     - 'ADMIN_ACC_TYPE=${_ADMIN_ACC_TYPE}'
     - 'ADMIN_AUTH_PROVIDER_CERTL_URL=${_ADMIN_AUTH_PROVIDER_CERTL_URL}'
