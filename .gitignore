@@ -30,3 +30,4 @@ yarn-error.log*
 .idea
 node_modules
 
+front-end/package-lock.json
