@@ -3,10 +3,6 @@ steps:
   entrypoint: npm
   args: ["install"]
   dir: 'back-end'
-- name: node:14.17.3
-  entrypoint: npm
-  args: ["run", "start"]
-  dir: 'back-end'
   env:
     - 'ADMIN_ACC_TYPE=${_ADMIN_ACC_TYPE}'
     - 'ADMIN_AUTH_PROVIDER_CERTL_URL=${_ADMIN_AUTH_PROVIDER_CERTL_URL}'
@@ -18,7 +14,6 @@ steps:
     - 'ADMIN_PRIVATE_KEY_ID=${_ADMIN_PRIVATE_KEY_ID}'
     - 'ADMIN_TOKEN_URI=${_ADMIN_TOKEN_URI}'
     - 'AIR_TABLE_API=${_AIR_TABLE_API}'
-   
     - 'NODE_APP_API_KEY=${_NODE_APP_API_KEY}'
     - 'NODE_APP_AUTH_DOMAIN=${_NODE_APP_AUTH_DOMAIN}'
     - 'NODE_APP_PROJECT_ID=${_NODE_APP_PROJECT_ID}'
