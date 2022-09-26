@@ -39,6 +39,10 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
       });
       if (data.success) {
         getEvents();
+        setVisible((prev) => ({
+          ...prev,
+          volunteerCreateDeliveryEventModalVisible: false,
+        }));
       } else {
         message.error(data.error);
       }
@@ -47,10 +51,6 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
     }
 
     setLoading(false);
-    setVisible((prev) => ({
-      ...prev,
-      volunteerCreateDeliveryEventModalVisible: false,
-    }));
   };
 
   const Footer = () => (
