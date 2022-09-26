@@ -26,7 +26,7 @@ export const Icon = styled.img`
 export const DeleteButton = styled.img`
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 5px;
   cursor: pointer;
 
   &:hover {

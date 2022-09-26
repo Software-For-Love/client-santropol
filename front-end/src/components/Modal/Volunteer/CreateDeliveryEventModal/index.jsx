@@ -1,6 +1,6 @@
 import { useState, useContext } from "react";
 import PropTypes from "prop-types";
-import { Row, Radio } from "antd";
+import { Row, Radio, message } from "antd";
 import Button from "../../../Button";
 import Modal, { CommentTextArea } from "../../styles";
 import { DELIVERY_TYPES } from "../../../../constants";
@@ -26,7 +26,7 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
         : "Test User".split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
-      await AxiosInstance.post("/events/createEvent", {
+      const { data } = await AxiosInstance.post("/events/createEvent", {
         firstName,
         lastName,
         eventType: "deliv",
@@ -37,7 +37,11 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
         userComment: comment,
         typeOfDelivery: value,
       });
-      getEvents();
+      if (data.success) {
+        getEvents();
+      } else {
+        message.error(data.error);
+      }
     } catch (error) {
       console.log(error);
     }
