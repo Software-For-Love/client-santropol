@@ -17,7 +17,9 @@ const UpdateDeliveryEventModal = ({
   volunteerInfo,
 }) => {
   const { user } = useContext(AuthContext);
-  const [value, setValue] = useState("Foot");
+  const [value, setValue] = useState(
+    eventInfo?.data?.type_of_delivery || "Foot"
+  );
   const [comment, setComment] = useState(eventInfo?.data?.user_comment || "");
   const [employeeComment, setEmployeeComment] = useState("");
   const [loading, setLoading] = useState(false);
