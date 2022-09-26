@@ -1,6 +1,6 @@
 import { useState, useContext } from "react";
 import PropTypes from "prop-types";
-import { Row, Radio, Checkbox } from "antd";
+import { Row, Radio } from "antd";
 import Button from "../../../Button";
 import Modal, { CommentTextArea } from "../../styles";
 import { DELIVERY_TYPES } from "../../../../constants";
@@ -22,10 +22,10 @@ const UpdateDeliveryEventModal = ({
   );
   const [comment, setComment] = useState(eventInfo?.data?.user_comment || "");
   const [employeeComment, setEmployeeComment] = useState(
-    eventInfo?.data?.employee_comment || ""
+    eventInfo?.data?.admin_comment || ""
   );
   const [loading, setLoading] = useState(false);
-  const [checked, setChecked] = useState(false);
+  // const [checked, setChecked] = useState(false);
 
   const onTypeOfDeliveryChange = (e) => {
     setValue(e.target.value);
@@ -34,7 +34,9 @@ const UpdateDeliveryEventModal = ({
   const updateEvent = async () => {
     setLoading(true);
     try {
-      const userNameArray = user.displayName? user.displayName.split(" "): "Test User".split(" ");
+      const userNameArray = user.displayName
+        ? user.displayName.split(" ")
+        : "Test User".split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
       await AxiosInstance.post("/events/editEvent", {
@@ -42,8 +44,10 @@ const UpdateDeliveryEventModal = ({
         lastName,
         eventType: "deliv",
         userId: user.uid,
+        slot: 4,
         eventDate: date.format("YYMMDD"),
         userComment: comment,
+        adminComment: employeeComment,
         typeOfDelivery: value,
         event_id: eventInfo?.event_id,
       });
@@ -118,12 +122,12 @@ const UpdateDeliveryEventModal = ({
         value={employeeComment}
         onChange={(event) => setEmployeeComment(event.target.value)}
       />
-      <Checkbox
+      {/* <Checkbox
         checked={checked}
         onChange={(event) => setChecked(event.target.checked)}
       >
         Volunteer did not show up for this event.
-      </Checkbox>
+      </Checkbox> */}
     </Modal>
   );
 };
