@@ -405,6 +405,7 @@ eventRouter.post("/createEvent", async (req, res) => {
   const eventType = req.body.eventType;
   const userId = req.body.userId;
   const slot = req.body.slot;
+  const adminComment = req.body.adminComment? req.body.adminComment: 'NA';
   const typeOfDelivery = req.body.typeOfDelivery
     ? req.body.typeOfDelivery
     : "NA";
@@ -442,6 +443,7 @@ eventRouter.post("/createEvent", async (req, res) => {
     key: userEventRef.id,
     user_comment: userComment,
     type_of_delivery: typeOfDelivery,
+    admin_comment: adminComment
   })
     .catch((err) => res.json({ success: false, result: err }))
     .then((writeResult) => {
@@ -479,6 +481,7 @@ eventRouter.post("/editEvent", async (req, res) => {
   const slot = req.body.slot;
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
   const userComment = req.body.userComment ? req.body.userComment : "";
+  const adminComment = req.body.adminComment? req.body.adminComment: 'NA';
   const typeOfDelivery = req.body.typeOfDelivery
     ? req.body.typeOfDelivery
     : "NA";
@@ -496,6 +499,7 @@ eventRouter.post("/editEvent", async (req, res) => {
     last_name: lastName,
     user_comment: userComment,
     type_of_delivery: typeOfDelivery,
+    admin_comment: adminComment,
   })
     .catch((err) => res.json({ success: false, result: err }))
     .then((writeResult) => {
