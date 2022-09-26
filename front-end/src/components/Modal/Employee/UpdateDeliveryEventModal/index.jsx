@@ -17,9 +17,13 @@ const UpdateDeliveryEventModal = ({
   volunteerInfo,
 }) => {
   const { user } = useContext(AuthContext);
-  const [value, setValue] = useState("Foot");
-  const [comment, setComment] = useState(eventInfo?.user_comment || "");
-  const [employeeComment, setEmployeeComment] = useState("");
+  const [value, setValue] = useState(
+    eventInfo?.data?.type_of_delivery || "Foot"
+  );
+  const [comment, setComment] = useState(eventInfo?.data?.user_comment || "");
+  const [employeeComment, setEmployeeComment] = useState(
+    eventInfo?.data?.employee_comment || ""
+  );
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
 
@@ -33,14 +37,15 @@ const UpdateDeliveryEventModal = ({
       const userNameArray = user.displayName? user.displayName.split(" "): "Test User".split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
-      await AxiosInstance.post("/events/createEvent", {
+      await AxiosInstance.post("/events/editEvent", {
         firstName,
         lastName,
         eventType: "deliv",
         userId: user.uid,
-        eventDate: moment(date.format("YYYY-MM-DD")).toDate(),
+        eventDate: date.format("YYMMDD"),
         userComment: comment,
         typeOfDelivery: value,
+        event_id: eventInfo?.event_id,
       });
       getEvents();
     } catch (error) {

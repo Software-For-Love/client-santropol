@@ -57,42 +57,60 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
   let event;
   let cancel_event;
   try {
-  if(req.body.key && req.body.role){
-    q = query(eventCollectionRef,where("key", "==", req.body.key));
-    event = (await getDocsWrapper(q))[0];
-  }
-  else {
-    res.status(400).json({success: false, result: "No valid body parameters"})
-  }
-  if (!event) {
-    res.status(404).json({success: false, result: "No returned values"});
-  }
-  //Can only remove as a volunteer if greater than 2 days away, staff/admin can remove anytime. Considered cancelled
-  else if (req.body.role == "volunteer" && (event.data().event_date - getDateNumber(new Date()) < 2 || req.body.uid != req.user.uid)) {
-    res.status(403).json({ success: false, result: "Not allowed to remove, contact staff" });
-  } 
-  else {
-    cancel_event =  {event_id: event.id, uid: req.body.uid, reason: req.body.reason ? req.body.reason: "" }
-    await deleteDoc(event.ref)
-    let eventCancelRef = await addDoc(collection(db, "user_cancelled_event",cancel_event.uid,"cancels"), cancel_event);
-    let count = 0;
-    let userCancelledEvents = await getDocs(collection(db, "user_cancelled_event",cancel_event.uid,"cancels"));
-    userCancelledEvents.forEach((doc) => {
-      // doc.data() is never undefined for query doc snapshots
-      count++;
-    });
+    if (req.body.key && req.body.role) {
+      q = query(eventCollectionRef, where("key", "==", req.body.key));
+      event = (await getDocsWrapper(q))[0];
+    } else {
+      res
+        .status(400)
+        .json({ success: false, result: "No valid body parameters" });
+    }
+    if (!event) {
+      res.status(404).json({ success: false, result: "No returned values" });
+    }
+    //Can only remove as a volunteer if greater than 2 days away, staff/admin can remove anytime. Considered cancelled
+    else if (
+      req.body.role == "volunteer" &&
+      (event.data().event_date - getDateNumber(new Date()) < 2 ||
+        req.body.uid != req.user.uid)
+    ) {
+      res
+        .status(403)
+        .json({
+          success: false,
+          result: "Not allowed to remove, contact staff",
+        });
+    } else {
+      cancel_event = {
+        event_id: event.id,
+        uid: req.body.uid,
+        reason: req.body.reason ? req.body.reason : "",
+      };
+      await deleteDoc(event.ref);
+      let eventCancelRef = await addDoc(
+        collection(db, "user_cancelled_event", cancel_event.uid, "cancels"),
+        cancel_event
+      );
+      let count = 0;
+      let userCancelledEvents = await getDocs(
+        collection(db, "user_cancelled_event", cancel_event.uid, "cancels")
+      );
+      userCancelledEvents.forEach((doc) => {
+        // doc.data() is never undefined for query doc snapshots
+        count++;
+      });
 
-    let userEventCancelIncrment = await setDoc( doc(db, "user_cancelled_event",cancel_event.uid),{cancellations: count});
-    res.status(200).json({ success: true, result: cancel_event });
-  }
-  }
-   catch (e) {
+      let userEventCancelIncrment = await setDoc(
+        doc(db, "user_cancelled_event", cancel_event.uid),
+        { cancellations: count }
+      );
+      res.status(200).json({ success: true, result: cancel_event });
+    }
+  } catch (e) {
     console.log(e);
     res.status(400).json({ success: false, result: e });
   }
-
 });
-
 
 /** 
  * @description:
@@ -110,45 +128,61 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
 eventRouter.get("/getUserPastEvents", async (req, res) => {
   let q;
   //Checking if user is staff.  if volunteer, then that person ONLY accessing their own data
-  if (req.body.uid && (req.body.role == "staff" || req.body.role == "admin" || req.body.uid == req.user.uid)) {
+  if (
+    req.body.uid &&
+    (req.body.role == "staff" ||
+      req.body.role == "admin" ||
+      req.body.uid == req.user.uid)
+  ) {
     const db = getFirestore();
     if (req.query.event_status == acceptedEventStates[1]) {
-       q = query(
+      q = query(
         collection(db, "user_cancelled_event"),
         where("uid", "==", req.body.uid)
       );
-      getDocsWrapper(q).then((results) => res.status(200).json({ result: results.map(val => val.data())}))
-      .catch((err) => res.status(400).json({ success: false, result: err }));
-    } 
-    else if (req.query.event_status == acceptedEventStates[0]) {
-       q = query(
+      getDocsWrapper(q)
+        .then((results) =>
+          res.status(200).json({ result: results.map((val) => val.data()) })
+        )
+        .catch((err) => res.status(400).json({ success: false, result: err }));
+    } else if (req.query.event_status == acceptedEventStates[0]) {
+      q = query(
         collection(db, "event"),
         where(req.query.event_status, "==", true),
         where("uid", "==", req.body.uid)
       );
-      getDocsWrapper(q).then((results) => res.status(200).json({ result: results.map(val => val.data()) }))
-      .catch((err) => res.status(400).json({ success: false, result: err }));
-    } 
+      getDocsWrapper(q)
+        .then((results) =>
+          res.status(200).json({ result: results.map((val) => val.data()) })
+        )
+        .catch((err) => res.status(400).json({ success: false, result: err }));
+    }
     //If no query is supplied, give both cancelled and past events
     else {
-      q = query(
-        collection(db, "event"),
-        where("uid", "==", req.body.uid)
-      );
+      q = query(collection(db, "event"), where("uid", "==", req.body.uid));
       let q2 = query(
         collection(db, "user_cancelled_event"),
         where("uid", "==", req.body.uid)
       );
-      try{
+      try {
         let result1 = await getDocsWrapper(q);
         let result2 = await getDocsWrapper(q2);
-        res.status(200).json({success: true, result: {...result1.map(val => val.data()), ...result2.map(val => val.data())}});
-      } catch(err){
+        res.status(200).json({
+          success: true,
+          result: {
+            ...result1.map((val) => val.data()),
+            ...result2.map((val) => val.data()),
+          },
+        });
+      } catch (err) {
         res.status(400).json({ success: false, result: err });
       }
     }
   } else {
-    res.status(403).json({success: false, result: "Not authorized to get this user's data"});
+    res.status(403).json({
+      success: false,
+      result: "Not authorized to get this user's data",
+    });
   }
 });
 
@@ -163,9 +197,8 @@ function getDocsWrapper(query) {
     })
     .catch((err) => {
       throw new Error(err);
-    }); 
+    });
 }
-
 
 /**
  *  Request to get events for the current week optional paramater is the date selected.
@@ -181,16 +214,16 @@ eventRouter.get("/getWeeklyEventSlots", async (req, res) => {
   let eventType = req.query.eventType ? req.query.eventType : "kitam";
   const today = req.query.eventDate;
   let eventDate = null;
-  if(today.length == 6){
+  if (today.length == 6) {
     year = today.substring(0, 2);
     month = today.substring(2, 4);
     day = today.substring(4, 6);
     eventDate = moment(`20${year}-${month}-${day}`);
   }
-  if(!eventDate){
-    res.json({ success: false, result: 'Invalid Date format provided' });
+  if (!eventDate) {
+    res.json({ success: false, result: "Invalid Date format provided" });
   }
-  const oneWeekLater = eventDate.add(6, "days")
+  const oneWeekLater = eventDate.add(6, "days");
   const oneWeekLaterFormatted = oneWeekLater.format("YYMMDD");
 
   const upperBound = parseInt(oneWeekLaterFormatted);
@@ -233,13 +266,15 @@ eventRouter.get("/getEvents", async (req, res) => {
   let eventType = req.query.eventType ? req.query.eventType : "kitam";
   const db = getFirestore();
   const eventDate = req.query.eventDate;
-  if(eventDate.length != 6 ){
+  if (eventDate.length != 6) {
     res.json({ success: false, error: "Invalid Date Provided" });
   }
   let dateYear = eventDate.substring(0, 2);
   let dateMonth = eventDate.substring(2, 4);
   let dateDay = eventDate.substring(4, 6);
-  let nextWeekDate = moment(`20${dateYear}-${dateMonth}-${dateDay}`).add(6, "days").format("YYMMDD");
+  let nextWeekDate = moment(`20${dateYear}-${dateMonth}-${dateDay}`)
+    .add(6, "days")
+    .format("YYMMDD");
 
   var lowerDateBound = parseInt(eventDate);
   var upperDateBound = parseInt(nextWeekDate);
@@ -256,7 +291,6 @@ eventRouter.get("/getEvents", async (req, res) => {
     userIdsWithMoreThanThreeCancellations.add(doc.id);
   });
 
-
   var result = [];
   const q = query(
     collection(db, "event"),
@@ -264,22 +298,22 @@ eventRouter.get("/getEvents", async (req, res) => {
     where("event_date", ">=", lowerDateBound),
     where("event_type", "==", eventType)
   );
-  try{
-  await getDocs(q)
-    .catch((err) => res.json({ success: false, result: err }))
-    .then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        // doc.data() is never undefined for query doc snapshots
-        var record = { id: doc.id, data: doc.data()};
-        let hasCancelledThreeOrMoreEvents = userIdsWithMoreThanThreeCancellations.has(record.data.uid);
-        record["cancelled"] = hasCancelledThreeOrMoreEvents;
-        result.push(record);
-      });
+  try {
+    await getDocs(q)
+      .catch((err) => res.json({ success: false, result: err }))
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          // doc.data() is never undefined for query doc snapshots
+          var record = { id: doc.id, data: doc.data() };
+          let hasCancelledThreeOrMoreEvents =
+            userIdsWithMoreThanThreeCancellations.has(record.data.uid);
+          record["cancelled"] = hasCancelledThreeOrMoreEvents;
+          result.push(record);
+        });
 
-      res.json({ success: true, result });
-    });
-  }
-  catch (e) {
+        res.json({ success: true, result });
+      });
+  } catch (e) {
     console.log(e);
     res.status(400).json({ success: false, result: e });
   }
@@ -367,8 +401,10 @@ eventRouter.post("/createEvent", async (req, res) => {
   const eventType = req.body.eventType;
   const userId = req.body.userId;
   const slot = req.body.slot;
-  const typeOfDelivery = req.body.typeOfDelivery? req.body.typeOfDelivery: 'NA';
-  const userType = req.body.userType? req.body.userType: 'admin';
+  const typeOfDelivery = req.body.typeOfDelivery
+    ? req.body.typeOfDelivery
+    : "NA";
+  const userType = req.body.userType ? req.body.userType : "admin";
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
 
   const userComment = req.body.userComment ? req.body.userComment : "";
@@ -401,7 +437,7 @@ eventRouter.post("/createEvent", async (req, res) => {
     last_name: lastName,
     key: userEventRef.id,
     user_comment: userComment,
-    type_of_delivery: typeOfDelivery
+    type_of_delivery: typeOfDelivery,
   })
     .catch((err) => res.json({ success: false, result: err }))
     .then((writeResult) => {
@@ -439,7 +475,9 @@ eventRouter.post("/editEvent", async (req, res) => {
   const slot = req.body.slot;
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
   const userComment = req.body.userComment ? req.body.userComment : "";
-  const typeOfDelivery = req.body.typeOfDelivery? req.body.typeOfDelivery: 'NA';
+  const typeOfDelivery = req.body.typeOfDelivery
+    ? req.body.typeOfDelivery
+    : "NA";
 
   const db = getFirestore();
   var dbDate = parseInt(date);
@@ -453,7 +491,7 @@ eventRouter.post("/editEvent", async (req, res) => {
     first_name: firstName,
     last_name: lastName,
     user_comment: userComment,
-    type_of_delivery: typeOfDelivery
+    type_of_delivery: typeOfDelivery,
   })
     .catch((err) => res.json({ success: false, result: err }))
     .then((writeResult) => {

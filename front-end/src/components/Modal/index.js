@@ -4,5 +4,6 @@ export { default as VolunteerUpdateDeliveryEventModal } from "./Volunteer/Update
 export { default as VolunteerUpdateKitchenEventModal } from "./Volunteer/UpdateKitchenEventModal";
 export { default as EmployeeUpdateDeliveryEventModal } from "./Employee/UpdateDeliveryEventModal";
 export { default as EmployeeUpdateKitchenEventModal } from "./Employee/UpdateKitchenEventModal";
+export { default as RemoveUserFromEventModal } from "./RemoveUserFromEventModal";
 
 export { default as ResetPasswordOverlay } from "./ResetPasswordOverlay";

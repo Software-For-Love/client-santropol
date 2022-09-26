@@ -24,6 +24,7 @@ const CalendarComponent = (props) => {
         },
       });
       setEvents(data.result);
+      console.log(data.result);
     } catch (err) {
       console.log(err);
     }
