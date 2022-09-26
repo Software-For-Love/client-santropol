@@ -37,7 +37,7 @@ const UpdateDeliveryEventModal = ({
       const userNameArray = user.displayName.split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
-      await AxiosInstance.post("/events/createEvent", {
+      await AxiosInstance.post("/events/editEvent", {
         firstName,
         lastName,
         eventType: "deliv",
@@ -45,6 +45,7 @@ const UpdateDeliveryEventModal = ({
         eventDate: moment(date.format("YYYY-MM-DD")).toDate(),
         userComment: comment,
         typeOfDelivery: value,
+        event_id: eventInfo?.event_id,
       });
       getEvents();
     } catch (error) {
