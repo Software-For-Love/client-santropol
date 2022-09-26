@@ -19,11 +19,12 @@ const CalendarComponent = (props) => {
     try {
       const { data } = await AxiosInstance.get("/events/getEvents", {
         params: {
-          eventDate: date.startOf("week").format("YYYY-MM-DD"),
+          eventDate: date.startOf("week").format("YYMMDD"),
           eventType: variant,
         },
       });
       setEvents(data.result);
+      console.log(data.result);
     } catch (err) {
       console.log(err);
     }

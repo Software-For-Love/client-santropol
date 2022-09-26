@@ -19,7 +19,7 @@ const CalendarBody = (props) => {
     const result = [[], [], [], [], [], [], []];
     const newButtonColors = [...buttonColors];
 
-    info.forEach(({ data, id }) => {
+    info.forEach(({ data, id, cancelled }) => {
       const { event_date, first_name, last_name } = data;
       const event_id = id;
       const year = event_date.toString().substring(0, 2);
@@ -33,6 +33,7 @@ const CalendarBody = (props) => {
       const eventIndex = eventDate.weekday();
       // add to the result array
       result[eventIndex].push({
+        cancelled,
         data,
         event_id,
         volunteerInfo: {
@@ -90,17 +91,17 @@ const CalendarBody = (props) => {
       eventDate: parseInt(newNumberOfCells[index][0].event_date),
       slots: newNumberOfCells[index].length,
     });
-    const { data } = await AxiosInstance.get("/events/getWeeklyEventSlots", {
-      params: {
-        eventDate: date.startOf("week").format("YYMMDD"),
-        eventType: variant,
-      },
-    });
-    console.log(data, "weekly events");
-    console.log("Event type: " + variant);
-    console.log("Clicked: " + newNumberOfCells[index][0].event_date);
+    // const { data } = await AxiosInstance.get("/events/getWeeklyEventSlots", {
+    //   params: {
+    //     eventDate: date.startOf("week").format("YYMMDD"),
+    //     eventType: variant,
+    //   },
+    // });
+
     setEvents(newNumberOfCells);
   };
+
+  console.log(events, "events");
 
   return (
     <Body justify="space-between">

@@ -9,7 +9,7 @@ import AxiosInstance from "../../../../API/api";
 import { AuthContext } from "../../../../Contexts/AuthContext";
 
 const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
-  const { user } = useContext(AuthContext);
+  const { user, userType } = useContext(AuthContext);
   const [value, setValue] = useState("Foot");
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,9 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
   const createEvent = async () => {
     setLoading(true);
     try {
-      const userNameArray = user.displayName? user.displayName.split(" "): "Test User".split(" ");
+      const userNameArray = user.displayName
+        ? user.displayName.split(" ")
+        : "Test User".split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
       await AxiosInstance.post("/events/createEvent", {
@@ -30,6 +32,7 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
         eventType: "deliv",
         slot: 4,
         userId: user.uid,
+        userType,
         eventDate: date.format("YYMMDD"),
         userComment: comment,
         typeOfDelivery: value,

@@ -16,7 +16,9 @@ const CreateDeliveryEventModal = ({
   eventInfo,
 }) => {
   const { user } = useContext(AuthContext);
-  const [value, setValue] = useState("Foot");
+  const [value, setValue] = useState(
+    eventInfo?.data?.type_of_delivery || "Foot"
+  );
   const [comment, setComment] = useState(eventInfo?.data?.user_comment || "");
   const [loading, setLoading] = useState(false);
 
@@ -35,9 +37,11 @@ const CreateDeliveryEventModal = ({
         lastName,
         eventType: "deliv",
         userId: user.uid,
-        eventDate: moment(date.format("YYYY-MM-DD")).toDate(),
+        slot: 4,
+        eventDate: date.format("YYMMDD"),
         userComment: comment,
         typeOfDelivery: value,
+        event_id: eventInfo?.event_id,
       });
       getEvents();
     } catch (error) {
@@ -47,14 +51,14 @@ const CreateDeliveryEventModal = ({
     setLoading(false);
     setVisible((prev) => ({
       ...prev,
-      volunteerCreateDeliveryEventModalVisible: false,
+      volunteerUpdateDeliveryEventModalVisible: false,
     }));
   };
 
   const Footer = () => (
     <Row justify="center">
       <Button type="primary" onClick={updateEvent} loading={loading}>
-        Confirm
+        Update
       </Button>
     </Row>
   );
@@ -70,7 +74,7 @@ const CreateDeliveryEventModal = ({
       onCancel={() =>
         setVisible((prev) => ({
           ...prev,
-          volunteerCreateDeliveryEventModalVisible: false,
+          volunteerUpdateDeliveryEventModalVisible: false,
         }))
       }
       footer={<Footer />}

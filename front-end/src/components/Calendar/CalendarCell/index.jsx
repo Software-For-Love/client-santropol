@@ -133,14 +133,15 @@ const CalendarCell = (props) => {
         >
           {volunteerInfo && (
             <>
-              {volunteerInfo.missedShifts && userType === "admin" && (
+              {eventInfo?.cancelled && userType === "admin" && (
                 <MissedShiftIndicator />
               )}
-              {volunteerInfo.deliveryType && (
-                <DeliveryTypeIndicator
-                  deliveryType={volunteerInfo.deliveryType}
-                />
-              )}
+              {eventInfo?.data?.type_of_delivery &&
+                eventInfo?.data?.type_of_delivery !== "NA" && (
+                  <DeliveryTypeIndicator
+                    deliveryType={eventInfo.data.type_of_delivery}
+                  />
+                )}
               <Typography.Text style={{ fontSize: "1rem" }}>
                 {`${volunteerInfo.firstName || "No Data"} ${
                   volunteerInfo.lastName ? `${volunteerInfo.lastName[0]}.` : ""
