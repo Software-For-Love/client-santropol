@@ -34,6 +34,7 @@ const CalendarCell = (props) => {
   const closeIconVisible =
     (userType === "admin" && volunteerInfo) ||
     eventInfo?.data?.uid === user.uid;
+
   const [modalVisibility, setModalVisibility] = useState({
     volunteerCreateKitchenEventModalVisible: false,
     volunteerUpdateKitchenEventModalVisible: false,
@@ -49,7 +50,6 @@ const CalendarCell = (props) => {
       if (volunteerInfo) {
         // Volunteers can only update their own events.
         if (eventInfo?.data?.uid !== user.uid) {
-          console.log(eventInfo, user.uid);
           message.error("You can only see your own shifts.");
         } else {
           if (variant === "deliv") {
@@ -211,6 +211,7 @@ CalendarCell.propTypes = {
   date: PropTypes.object.isRequired,
   volunteerInfo: PropTypes.object,
   eventInfo: PropTypes.object,
+  cancelled: PropTypes.bool,
 };
 
 export default CalendarCell;

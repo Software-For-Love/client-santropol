@@ -14,6 +14,8 @@ const {
   where,
 } = require("firebase/firestore");
 
+const WEEKLY_EVENT_LIMIT = 3;
+
 eventRouter.post("/setEventGroup", async (req, res) => {
   const db = getFirestore();
   const eventType = req.body.eventType ? req.body.eventType : "kitam";
@@ -72,10 +74,12 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
       (event.data().event_date - getDateNumber(new Date()) < 2 ||
         req.body.uid != req.user.uid)
     ) {
-      res.status(403).json({
-        success: false,
-        result: "Not allowed to remove, contact staff",
-      });
+      res
+        .status(403)
+        .json({
+          success: false,
+          result: "Not allowed to remove, contact staff",
+        });
     } else {
       cancel_event = {
         event_id: event.id,
@@ -83,7 +87,23 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
         reason: req.body.reason ? req.body.reason : "",
       };
       await deleteDoc(event.ref);
-      await addDoc(collection(db, "user_cancelled_event"), cancel_event);
+      let eventCancelRef = await addDoc(
+        collection(db, "user_cancelled_event", cancel_event.uid, "cancels"),
+        cancel_event
+      );
+      let count = 0;
+      let userCancelledEvents = await getDocs(
+        collection(db, "user_cancelled_event", cancel_event.uid, "cancels")
+      );
+      userCancelledEvents.forEach((doc) => {
+        // doc.data() is never undefined for query doc snapshots
+        count++;
+      });
+
+      let userEventCancelIncrment = await setDoc(
+        doc(db, "user_cancelled_event", cancel_event.uid),
+        { cancellations: count }
+      );
       res.status(200).json({ success: true, result: cancel_event });
     }
   } catch (e) {
@@ -245,37 +265,31 @@ eventRouter.get("/getEvents", async (req, res) => {
   //Optional event type, default value is kitam
   let eventType = req.query.eventType ? req.query.eventType : "kitam";
   const db = getFirestore();
-  const today = req.query.eventDate
-    ? moment(req.query.eventDate).toDate()
-    : new Date();
+  const eventDate = req.query.eventDate;
+  if (eventDate.length != 6) {
+    res.json({ success: false, error: "Invalid Date Provided" });
+  }
+  let dateYear = eventDate.substring(0, 2);
+  let dateMonth = eventDate.substring(2, 4);
+  let dateDay = eventDate.substring(4, 6);
+  let nextWeekDate = moment(`20${dateYear}-${dateMonth}-${dateDay}`)
+    .add(6, "days")
+    .format("YYMMDD");
 
-  var nextweek = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate() + 6
+  var lowerDateBound = parseInt(eventDate);
+  var upperDateBound = parseInt(nextWeekDate);
+
+  const cancelQuery = query(
+    collection(db, "user_cancelled_event"),
+    where("cancellations", ">=", 3)
   );
 
-  var year = today.getFullYear() % 100;
-  var nextweekYear = nextweek.getFullYear() % 100;
-
-  var month =
-    today.getMonth() + 1 < 10
-      ? "0" + (today.getMonth() + 1).toString()
-      : (today.getMonth() + 1).toString();
-  var nextweekMonth =
-    nextweek.getMonth() + 1 < 10
-      ? "0" + (nextweek.getMonth() + 1).toString()
-      : nextweek.getMonth() + 1;
-
-  var day =
-    today.getDate() < 10 ? "0" + today.getDate().toString() : today.getDate();
-  var nextweekDay =
-    nextweek.getDate() + 1 < 10
-      ? "0" + nextweek.getDate().toString()
-      : nextweek.getDate() + 1;
-
-  var lowerDateBound = parseInt(year + month + day);
-  var upperDateBound = parseInt(nextweekYear + nextweekMonth + nextweekDay);
+  let usersWithMoreThanThreeCancellations = await getDocs(cancelQuery);
+  let userIdsWithMoreThanThreeCancellations = new Set();
+  usersWithMoreThanThreeCancellations.forEach((doc) => {
+    // doc.data() is never undefined for query doc snapshots
+    userIdsWithMoreThanThreeCancellations.add(doc.id);
+  });
 
   var result = [];
   const q = query(
@@ -284,16 +298,25 @@ eventRouter.get("/getEvents", async (req, res) => {
     where("event_date", ">=", lowerDateBound),
     where("event_type", "==", eventType)
   );
-  await getDocs(q)
-    .catch((err) => res.json({ success: false, result: err }))
-    .then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        // doc.data() is never undefined for query doc snapshots
-        result.push({ id: doc.id, data: doc.data() });
-      });
+  try {
+    await getDocs(q)
+      .catch((err) => res.json({ success: false, result: err }))
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          // doc.data() is never undefined for query doc snapshots
+          var record = { id: doc.id, data: doc.data() };
+          let hasCancelledThreeOrMoreEvents =
+            userIdsWithMoreThanThreeCancellations.has(record.data.uid);
+          record["cancelled"] = hasCancelledThreeOrMoreEvents;
+          result.push(record);
+        });
 
-      res.json({ success: true, result });
-    });
+        res.json({ success: true, result });
+      });
+  } catch (e) {
+    console.log(e);
+    res.status(400).json({ success: false, result: e });
+  }
 
   //get all the events for the current week
 });
@@ -330,7 +353,7 @@ async function checkUserEventsLimit(userid, weekStartDate, endDate) {
     where("uid", "==", userid)
   );
   const results = await getDocs(q);
-  return results.size < 3;
+  return results.size < WEEKLY_EVENT_LIMIT;
 }
 
 function getDateNumber(date) {
@@ -378,8 +401,10 @@ eventRouter.post("/createEvent", async (req, res) => {
   const eventType = req.body.eventType;
   const userId = req.body.userId;
   const slot = req.body.slot;
-  const typeOfDelivery = req.body.typeOfDelivery;
-  const userType = req.body.userType;
+  const typeOfDelivery = req.body.typeOfDelivery
+    ? req.body.typeOfDelivery
+    : "NA";
+  const userType = req.body.userType ? req.body.userType : "admin";
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
 
   const userComment = req.body.userComment ? req.body.userComment : "";
@@ -412,6 +437,7 @@ eventRouter.post("/createEvent", async (req, res) => {
     last_name: lastName,
     key: userEventRef.id,
     user_comment: userComment,
+    type_of_delivery: typeOfDelivery,
   })
     .catch((err) => res.json({ success: false, result: err }))
     .then((writeResult) => {
@@ -449,6 +475,9 @@ eventRouter.post("/editEvent", async (req, res) => {
   const slot = req.body.slot;
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
   const userComment = req.body.userComment ? req.body.userComment : "";
+  const typeOfDelivery = req.body.typeOfDelivery
+    ? req.body.typeOfDelivery
+    : "NA";
 
   const db = getFirestore();
   var dbDate = parseInt(date);
@@ -462,6 +491,7 @@ eventRouter.post("/editEvent", async (req, res) => {
     first_name: firstName,
     last_name: lastName,
     user_comment: userComment,
+    type_of_delivery: typeOfDelivery,
   })
     .catch((err) => res.json({ success: false, result: err }))
     .then((writeResult) => {
@@ -485,8 +515,6 @@ eventRouter.post("/deleteEvent", async (req, res) => {
       res.json({ success: true, result: "Event Delete Success" });
     });
   return;
-
-  //get all the events for the current week
 });
 
 module.exports = eventRouter;
