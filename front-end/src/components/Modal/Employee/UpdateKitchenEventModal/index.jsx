@@ -17,7 +17,9 @@ const UpdateKitchenEventModal = ({
 }) => {
   const { user } = useContext(AuthContext);
   const [comment, setComment] = useState(eventInfo?.data?.user_comment || "");
-  const [employeeComment, setEmployeeComment] = useState("");
+  const [employeeComment, setEmployeeComment] = useState(
+    eventInfo?.data?.employee_comment || ""
+  );
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
 
