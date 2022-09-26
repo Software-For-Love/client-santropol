@@ -167,22 +167,26 @@ eventRouter.get("/getUserPastEvents", async (req, res) => {
       try {
         let result1 = await getDocsWrapper(q);
         let result2 = await getDocsWrapper(q2);
-        res.status(200).json({
-          success: true,
-          result: {
-            ...result1.map((val) => val.data()),
-            ...result2.map((val) => val.data()),
-          },
-        });
+        res
+          .status(200)
+          .json({
+            success: true,
+            result: {
+              ...result1.map((val) => val.data()),
+              ...result2.map((val) => val.data()),
+            },
+          });
       } catch (err) {
         res.status(400).json({ success: false, result: err });
       }
     }
   } else {
-    res.status(403).json({
-      success: false,
-      result: "Not authorized to get this user's data",
-    });
+    res
+      .status(403)
+      .json({
+        success: false,
+        result: "Not authorized to get this user's data",
+      });
   }
 });
 

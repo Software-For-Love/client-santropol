@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import PropTypes from "prop-types";
-import { Row } from "antd";
+import { message, Row } from "antd";
 import Button from "../../../Button";
 import Modal, { CommentTextArea } from "../../styles";
 import moment from "moment";
@@ -24,7 +24,7 @@ const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
 
-      await AxiosInstance.post("/events/createEvent", {
+      const { data } = await AxiosInstance.post("/events/createEvent", {
         firstName,
         lastName,
         eventType: shiftTime === "AM" ? "kitam" : "kitpm",
@@ -34,16 +34,20 @@ const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
         userComment: comment,
         slot: 4,
       });
-      getEvents();
+      if (data.success) {
+        getEvents();
+        setVisible((prev) => ({
+          ...prev,
+          volunteerCreateKitchenEventModalVisible: false,
+        }));
+      } else {
+        message.error(data.error);
+      }
     } catch (error) {
       console.log(error);
     }
 
     setLoading(false);
-    setVisible((prev) => ({
-      ...prev,
-      volunteerCreateKitchenEventModalVisible: false,
-    }));
   };
 
   const Footer = () => (

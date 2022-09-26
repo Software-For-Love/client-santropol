@@ -91,17 +91,9 @@ const CalendarBody = (props) => {
       eventDate: parseInt(newNumberOfCells[index][0].event_date),
       slots: newNumberOfCells[index].length,
     });
-    // const { data } = await AxiosInstance.get("/events/getWeeklyEventSlots", {
-    //   params: {
-    //     eventDate: date.startOf("week").format("YYMMDD"),
-    //     eventType: variant,
-    //   },
-    // });
 
     setEvents(newNumberOfCells);
   };
-
-  console.log(events, "events");
 
   return (
     <Body justify="space-between">
@@ -141,7 +133,7 @@ const CalendarBody = (props) => {
                 getEvents={getEvents}
               />
             ))}
-            {(
+            {userType === "admin" && (
               <PlusIcon
                 onClick={() => {
                   plusIconClickHandler(i);
