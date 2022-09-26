@@ -42,7 +42,7 @@ const UpdateDeliveryEventModal = ({
         lastName,
         eventType: "deliv",
         userId: user.uid,
-        eventDate: moment(date.format("YYYY-MM-DD")).toDate(),
+        eventDate: date.format("YYMMDD"),
         userComment: comment,
         typeOfDelivery: value,
         event_id: eventInfo?.event_id,
