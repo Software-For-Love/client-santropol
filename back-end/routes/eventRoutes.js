@@ -74,7 +74,15 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
   else {
     cancel_event =  {event_id: event.id, uid: req.body.uid, reason: req.body.reason ? req.body.reason: "" }
     await deleteDoc(event.ref)
-    await addDoc(collection(db, "user_cancelled_event",cancel_event.uid,"cancels"), cancel_event);
+    let eventCancelRef = await addDoc(collection(db, "user_cancelled_event",cancel_event.uid,"cancels"), cancel_event);
+    let count = 0;
+    let userCancelledEvents = await getDocs(collection(db, "user_cancelled_event",cancel_event.uid,"cancels"));
+    userCancelledEvents.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      count++;
+    });
+
+    let userEventCancelIncrment = await setDoc( doc(db, "user_cancelled_event",cancel_event.uid),{cancellations: count});
     res.status(200).json({ success: true, result: cancel_event });
   }
   }
@@ -236,6 +244,19 @@ eventRouter.get("/getEvents", async (req, res) => {
   var lowerDateBound = parseInt(eventDate);
   var upperDateBound = parseInt(nextWeekDate);
 
+  const cancelQuery = query(
+    collection(db, "user_cancelled_event"),
+    where("cancellations", ">=", 3)
+  );
+
+  let usersWithMoreThanThreeCancellations = await getDocs(cancelQuery);
+  let userIdsWithMoreThanThreeCancellations = new Set();
+  usersWithMoreThanThreeCancellations.forEach((doc) => {
+    // doc.data() is never undefined for query doc snapshots
+    userIdsWithMoreThanThreeCancellations.add(doc.id);
+  });
+
+
   var result = [];
   const q = query(
     collection(db, "event"),
@@ -249,7 +270,10 @@ eventRouter.get("/getEvents", async (req, res) => {
     .then((querySnapshot) => {
       querySnapshot.forEach((doc) => {
         // doc.data() is never undefined for query doc snapshots
-        result.push({ id: doc.id, data: doc.data() });
+        var record = { id: doc.id, data: doc.data()};
+        let hasCancelledThreeOrMoreEvents = userIdsWithMoreThanThreeCancellations.has(record.data.uid);
+        record["cancelled"] = hasCancelledThreeOrMoreEvents;
+        result.push(record);
       });
 
       res.json({ success: true, result });
@@ -344,7 +368,7 @@ eventRouter.post("/createEvent", async (req, res) => {
   const userId = req.body.userId;
   const slot = req.body.slot;
   const typeOfDelivery = req.body.typeOfDelivery? req.body.typeOfDelivery: 'NA';
-  const userType = req.body.userType? req.body.userType: "volunteer";
+  const userType = req.body.userType? req.body.userType: 'admin';
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
 
   const userComment = req.body.userComment ? req.body.userComment : "";

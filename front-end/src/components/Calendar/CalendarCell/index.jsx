@@ -97,11 +97,15 @@ const CalendarCell = (props) => {
   return (
     <>
       <Cell onClick={onClickHandler}>
-        {userType === "admin" && volunteerInfo &&  (
+        {
+        // userType === "admin" && volunteerInfo && 
+         (
           <DeleteButton src={DeleteIcon} alt="delete shift" onClick={async ()=>{
              const event_id = props.event_id;
-             await AxiosInstance.post("/events/deleteEvent", {
-             event_id
+             await AxiosInstance.post("/events/removeUserFromEvent", {
+             key: event_id,
+             role: 'admin',
+             uid: user.uid
             });
             getEvents();
             }
@@ -178,6 +182,7 @@ CalendarCell.propTypes = {
   date: PropTypes.object.isRequired,
   volunteerInfo: PropTypes.object,
   eventInfo: PropTypes.object,
+  cancelled: PropTypes.bool
 };
 
 export default CalendarCell;
