@@ -26,7 +26,6 @@ class Event {
 
   constructor(){
       this.event_date = "";
-      this.event_date_txt = "";
       this.event_time_end = "";
       this.event_time_start = "";
       this.event_type= "";
@@ -52,9 +51,6 @@ class Event {
   }
   set setDate(event_date){
     this.event_date = event_date;
-  }
-  set setDateTxt(event_date_txt){
-    this.event_date_txt = event_date_txt;
   }
   set setTimeEnd(event_time_end){
     this.event_time_end = event_time_end ;
@@ -99,9 +95,6 @@ class Event {
   }
   get getDate(){
     return this.event_date;
-  }
-  get getDateTxt(){
-    return this.event_date_txt;
   }
   get getTimeEnd(){
     return this.event_time_end;
