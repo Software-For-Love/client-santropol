@@ -4,6 +4,7 @@ const admin = require("firebase-admin");
 const { Event } = require("./event");
 const { DeliveryEvent } = require("./deliveryEvent");
 const { rejects } = require("assert");
+const fs = require("fs")
 admin.initializeApp();
 
 const firestoreService = admin.firestore();
@@ -13,42 +14,22 @@ const oneDayMilliseconds = 24 * 60 * 60 * 1000;
 const maxEventsPerWeek = 3;
 const numOfWeeksAhead = 3;
 
-// exports.sampleCreation = functions.https.onRequest((req, res) => {
-//   let testEvent = new Event();
-//   testEvent.setDate = 220624;
-//   testEvent.setEventType = "kitpm";
-//   testEvent.setFirstName = "carl";
-//   testEvent.setLastName = "Anthoney";
-//   testEvent.setUid = "ad121asd3";
-//   testEvent.setSlot = 1;
-//   let {...a} = testEvent;
-//   eventsRef.add(a).then(() =>{
-//       recurEventRef.add({
-//       end_date: "2022-12-01T05:00:00.000Z",
-//       event_type: "deldr",
-//       delivery_type: "car",
-//       last_name: "carl",
-//       uid: "ad121asd3",
-//       int_day_of_week: 2,
-//       first_name: "Anthoney",
-//       new_recurring_event: true
-//     })
-//     recurEventRef.add({
-//       end_date: "2022-12-01T05:00:00.000Z",
-//       event_type: "kitpm",
-//       last_name: "carl",
-//       uid: "ad121asd3",
-//       int_day_of_week: 3,
-//       first_name: "Anthoney",
-//       new_recurring_event: true
-//     })
-//   })
-// })
+exports.sampleCreation = functions.https.onRequest((req, res) => {
+  let rawTestData = fs.readFileSync("./test/testData.json")
+  let testData = JSON.parse(rawTestData)
+  testData["events"].forEach(event => {
+      eventsRef.add(event)
+  });
+  testData["recurring_events"].forEach(event => {
+    recurEventRef.add(event)
+  })
+
+})
 /**
  * Cloud function used to generate future shifts. To run every Sunday at 9:00 AM.
  */
-// exports.createEvent = functions.https.onRequest(async (req,res)=> {
-exports.scheduledShiftGenerator = functions.pubsub.schedule("0 9 * * 0").timeZone("America/New_York").onRun(async (context) =>{
+exports.createEvent = functions.https.onRequest(async (req,res)=> {
+// exports.scheduledShiftGenerator = functions.pubsub.schedule("0 9 * * 0").timeZone("America/New_York").onRun(async (context) =>{
   console.log('creating...');
   let recurringEvents = await recurEventRef.get();
   for (let item of recurringEvents.docs) {
@@ -91,9 +72,7 @@ async function fillRecurringEvents(item, futureStartingDate){
 			    let eventLimitCondition = await checkUserEventsLimit(item.data().uid,futureStartingDate.getTime());          
           if(newDate < new Date(item.data().end_date) && eventLimitCondition) {
             let dateNumber = getDateNumber(newDate);
-            let dateString = getDateString(newDate);
             newEvent.setDate = dateNumber;
-            newEvent.setDateTxt = dateString;
             if(item.data().event_type === "deldr") {
               newEvent = new DeliveryEvent(newEvent);
               newEvent.setDeliveryType = item.data().delivery_type;

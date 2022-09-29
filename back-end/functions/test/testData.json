@@ -1,0 +1,40 @@
+{
+  "events": [
+    {
+      "date": 220624,
+      "first_name": "carl",
+      "last_name": "Anthoney",
+      "uid": "ad121asd3"
+    }
+  ],
+  "recurring_events": [
+    {
+      "end_date": "2022-12-01T05:00:00.000Z",
+      "event_type": "deldr",
+      "type_of_delivery": "car",
+      "last_name": "carl",
+      "uid": "ad121asd3",
+      "int_day_of_week": 2,
+      "first_name": "Anthoney",
+      "new_recurring_event": true
+    },
+    {
+      "end_date": "2022-12-01T05:00:00.000Z",
+      "event_type": "kitpm",
+      "last_name": "carl",
+      "uid": "ad121asd3",
+      "int_day_of_week": 3,
+      "first_name": "Anthoney",
+      "new_recurring_event": true
+    },
+    {
+      "end_date": "2022-12-01T05:00:00.000Z",
+      "event_type": "kitam",
+      "last_name": "carl",
+      "uid": "anotherOne",
+      "int_day_of_week": 4,
+      "first_name": "Anthoney",
+      "new_recurring_event": true
+    }
+  ]
+}
