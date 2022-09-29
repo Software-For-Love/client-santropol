@@ -14,22 +14,22 @@ const oneDayMilliseconds = 24 * 60 * 60 * 1000;
 const maxEventsPerWeek = 3;
 const numOfWeeksAhead = 3;
 
-exports.sampleCreation = functions.https.onRequest((req, res) => {
-  let rawTestData = fs.readFileSync("./test/testData.json")
-  let testData = JSON.parse(rawTestData)
-  testData["events"].forEach(event => {
-      eventsRef.add(event)
-  });
-  testData["recurring_events"].forEach(event => {
-    recurEventRef.add(event)
-  })
+// exports.sampleCreation = functions.https.onRequest((req, res) => {
+//   let rawTestData = fs.readFileSync("./test/testData.json")
+//   let testData = JSON.parse(rawTestData)
+//   testData["events"].forEach(event => {
+//       eventsRef.add(event)
+//   });
+//   testData["recurring_events"].forEach(event => {
+//     recurEventRef.add(event)
+//   })
 
-})
+// })
 /**
  * Cloud function used to generate future shifts. To run every Sunday at 9:00 AM.
  */
-exports.createEvent = functions.https.onRequest(async (req,res)=> {
-// exports.scheduledShiftGenerator = functions.pubsub.schedule("0 9 * * 0").timeZone("America/New_York").onRun(async (context) =>{
+// exports.createEvent = functions.https.onRequest(async (req,res)=> {
+exports.scheduledShiftGenerator = functions.pubsub.schedule("0 9 * * 0").timeZone("America/New_York").onRun(async (context) =>{
   console.log('creating...');
   let recurringEvents = await recurEventRef.get();
   for (let item of recurringEvents.docs) {
@@ -68,7 +68,6 @@ async function fillRecurringEvents(item, futureStartingDate){
           futureStartingDate = new Date(futureStartingDate);
           let newEvent = createEvent(item);
   		    newDate.setTime(newDate.getTime() + item.data().int_day_of_week*oneDayMilliseconds); 
-          // let newRecurEventCondition = await checkIfNewRecurringEvent(item, newDate);
 			    let eventLimitCondition = await checkUserEventsLimit(item.data().uid,futureStartingDate.getTime());          
           if(newDate < new Date(item.data().end_date) && eventLimitCondition) {
             let dateNumber = getDateNumber(newDate);
