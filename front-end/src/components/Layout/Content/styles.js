@@ -5,4 +5,5 @@ const { Content } = Layout;
 export default styled(Content)`
   padding-left: 1rem;
   height: 100%;
+  padding-bottom: 5rem;
 `;

@@ -13,7 +13,7 @@ export const ChildrenWrapper = styled(Row)`
   max-width: ${(props) => props.theme.layout.maxWidth};
   width: 100%;
   height: 100%;
-  padding: 0 ${(props) => props.theme.layout.paddingHorizontal}
+  padding: 1rem ${(props) => props.theme.layout.paddingHorizontal}
     ${(props) => props.theme.layout.paddingBottom}
     ${(props) => props.theme.layout.paddingHorizontal};
 `;
