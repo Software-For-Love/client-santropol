@@ -1,0 +1,21 @@
+{
+    "configurations": [
+    {
+        "command": "cd back-end; npm start",
+        "name": "Run Backend Windows",
+        "request": "launch",
+        "type": "node-terminal"
+    },
+    {
+        "command": "cd back-end && npm start",
+        "name": "Run Backend Linux",
+        "request": "launch",
+        "type": "node-terminal"
+    }
+    
+    ]
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    
+}
