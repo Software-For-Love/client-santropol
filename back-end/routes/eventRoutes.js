@@ -12,6 +12,7 @@ const {
   collection,
   query,
   where,
+  writeBatch,
 } = require("firebase/firestore");
 
 const WEEKLY_EVENT_LIMIT = 3;
@@ -443,7 +444,8 @@ eventRouter.post("/createEvent", async (req, res) => {
     key: userEventRef.id,
     user_comment: userComment,
     type_of_delivery: typeOfDelivery,
-    admin_comment: adminComment
+    admin_comment: adminComment,
+    recurring_event: false
   })
     .catch((err) => res.json({ success: false, result: err }))
     .then((writeResult) => {
@@ -525,4 +527,72 @@ eventRouter.post("/deleteEvent", async (req, res) => {
   return;
 });
 
+/**
+ *  Request to create an Event for a user:
+ * @description:
+ * For a volunteer we are creating an event if they havent worked 3 shifts this current week
+ * For a  staff we just always create the event.
+ * When an event is created we need to check if the event time slot exists for that event.
+ * If the event time slot does not exist we just create it. If it does then we add the existing
+ *  event time slot referemce to the user event document.
+ * @param userId
+ * @param userType
+ * @param eventType
+ * @param firstName
+ * @param lastName
+ * @param endDate
+ * @param startDate
+ * @param userType
+ * @param comment
+ * @param slot
+ * @param adminComment
+ * @param typeOfDelivery
+ */
+eventRouter.post("/recurringEvent", async (req,res)=> {
+  const db = getFirestore();
+  const firstName = req.body.firstName;
+  const lastName = req.body.lastName;
+  const eventType = req.body.eventType;
+  const userId = req.body.userId;
+  const slot = req.body.slot;
+  const adminComment = req.body.adminComment? req.body.adminComment: 'NA';
+  const typeOfDelivery = req.body.typeOfDelivery
+    ? req.body.typeOfDelivery
+    : "NA";
+  const userType = req.body.userType ? req.body.userType : "admin";
+  const startDate = req.body.startDate.length != 6 ? moment(req.body.startDate) : getDBDateFromString(req.body.startDate);
+  const endDate = req.body.endDate.length != 6 ? moment(req.body.endDate) : getDBDateFromString(req.body.endDate);
+  const userComment = req.body.userComment ? req.body.userComment : "";
+
+ //Need to determine number of weeks in advance as set by the end date
+ //Need to create event
+  while(startDate <= endDate){
+    var userEventRef = doc(collection(db, "event"));
+    var startOfWeek = getStartOfWeek(startDate);
+    var endOfWeek = getStartOfWeek(startDate).add(6, "days");
+    let dbDate =  startDate.format("YYMMDD");  //parseInt(getDateNumber(startDate));
+    const validUserEvent = await checkUserEventsLimit(
+      userId,
+      startOfWeek,
+      endOfWeek
+    );
+    if(validUserEvent || userType != "volunteer"){
+      await setDoc(userEventRef, {
+        uid: userId,
+        event_date: dbDate,
+        slot: slot || 0,
+        event_type: eventType,
+        first_name: firstName,
+        last_name: lastName,
+        key: userEventRef.id,
+        user_comment: userComment,
+        type_of_delivery: typeOfDelivery,
+        admin_comment: adminComment,
+        recurring_event: true
+      })
+    }
+    startDate.add(7, "days");
+  }
+  res.status(200).json({success: true, result: "Added events, please verify future events" })
+})
 module.exports = eventRouter;
