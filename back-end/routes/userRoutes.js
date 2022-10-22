@@ -2,6 +2,19 @@ const express = require("express");
 const admin = require("firebase-admin");
 const userRouter = express.Router();
 var Airtable = require("airtable");
+const {
+  addDoc,
+  getFirestore,
+  getDocs,
+  setDoc,
+  deleteDoc,
+  updateDoc,
+  doc,
+  collection,
+  query,
+  where,
+} = require("firebase/firestore");
+
 
 Airtable.configure({
   endpointUrl: "https://api.airtable.com",
@@ -22,6 +35,62 @@ userRouter.post("/claim-user-admin", async (req, res) => {
     res.json({ result: false });
   }
 });
+
+
+/**
+ * @param: first_name
+ * @param: last_name
+ * @return: List of users who have that first name and last_name
+ * 
+ */
+userRouter.post("/retrieve-users", async (req, res) => {
+  try {
+    const first_name = req.body.first_name;
+    const last_name = req.body.last_name;
+    const db = getFirestore();
+
+    let firstNameQuery = null;
+    let lastNameQuery = null;
+    let usersWithFirstName = [];
+    let usersWithLastName  = [];
+    if(first_name){
+      firstNameQuery = query(
+        collection(db, "user"),
+        where("first_name", "==", first_name)
+      );
+      usersWithFirstName = await getDocsWrapper(firstNameQuery);
+    }
+    if(last_name){
+      lastNameQuery = query(
+        collection(db, "user"),
+        where("last_name", "==", last_name)
+      );
+      usersWithLastName = await getDocsWrapper(lastNameQuery);
+
+    }
+    
+    let result = [...new Set([...usersWithFirstName,...usersWithLastName])];
+    res.json({ success: true, result});
+
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, error });
+  }
+});
+
+function getDocsWrapper(query) {
+  return getDocs(query)
+    .then((querySnapshot) => {
+      let results = [];
+      querySnapshot.docs.forEach((doc) => {
+        results.push(doc.data());
+      });
+      return results;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+}
 
 userRouter.put("/update-user-info", async (req, res) => {
   try {
