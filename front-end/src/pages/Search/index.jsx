@@ -1,5 +1,4 @@
-import React, { useState, useContext } from "react";
-import { AuthContext } from "../../Contexts/AuthContext";
+import React, { useState } from "react";
 import { StyledInput, LeftArrow } from "../Profile/styles";
 import { SearchContainer } from "./styles";
 import { Row, Col, Typography, message } from "antd";
@@ -10,20 +9,26 @@ import AxiosInstance from "../../API/api";
 
 const Search = () => {
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
   const [name, setName] = useState("");
   const [sendingData, setSendingData] = useState(false);
   const [data, setData] = useState(null);
+
+  console.log(data);
 
   const handleSearch = async () => {
     if (!name) {
       message.error("Please enter a name");
       return;
     }
+    const firstName = name.split(" ")[0];
+    const lastName = name.substring(firstName.length + 1);
+
+    console.log(firstName, lastName);
     setSendingData(true);
     try {
-      const response = await AxiosInstance.get("/events/getUserPastEvents", {
-        uid: user.uid,
+      const response = await AxiosInstance.post("/user/retrieve-users", {
+        first_name: firstName,
+        // last_name: lastName,
       });
       if (response.data.length === 0) {
         message.error("No results found");
@@ -70,6 +75,15 @@ const Search = () => {
             Go!
           </Button>
         </SearchContainer>
+        {data && data.length > 0 && (
+          <Row>
+            {data.map((user) => (
+              <Col span={8} key={user.uid}>
+                <Typography.Text>{user.first_name}</Typography.Text>
+              </Col>
+            ))}
+          </Row>
+        )}
       </Col>
     </Row>
   );
