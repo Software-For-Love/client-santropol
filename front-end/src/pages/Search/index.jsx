@@ -16,10 +16,10 @@ const Search = () => {
   console.log(data);
 
   const handleSearch = async () => {
-    if (!name) {
-      message.error("Please enter a name");
-      return;
-    }
+    // if (!name) {
+    //   message.error("Please enter a name");
+    //   return;
+    // }
     const firstName = name.split(" ")[0];
     const lastName = name.substring(firstName.length + 1);
 
