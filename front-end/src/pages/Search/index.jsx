@@ -27,7 +27,7 @@ const Search = () => {
     setSendingData(true);
     try {
       const response = await AxiosInstance.post("/user/retrieve-users", {
-        first_name: firstName,
+        first_name: "Indigo ",
         // last_name: lastName,
       });
       if (response.data.length === 0) {
