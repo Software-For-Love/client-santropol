@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import PropTypes from "prop-types";
-import { message, Row } from "antd";
+import { message, Row, Checkbox, DatePicker } from "antd";
 import Button from "../../../Button";
 import Modal, { CommentTextArea } from "../../styles";
 import moment from "moment";
@@ -11,6 +11,7 @@ const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
   const { user, userType } = useContext(AuthContext);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
   const shiftTime = window.location.pathname.includes("kitchen-am")
     ? "AM"
     : "PM";
@@ -88,6 +89,24 @@ const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
         value={comment}
         onChange={(event) => setComment(event.target.value)}
       />
+      <Checkbox
+        onChange={() => setIsRecurring(!isRecurring)}
+        checked={isRecurring}
+      >
+        This is a recurring event
+      </Checkbox>
+      {isRecurring && (
+        <div
+          style={{
+            marginTop: "10px",
+          }}
+        >
+          <p>
+            <strong>End Date: </strong>
+            <DatePicker />
+          </p>
+        </div>
+      )}
     </Modal>
   );
 };
