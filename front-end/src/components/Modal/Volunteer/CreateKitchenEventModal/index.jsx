@@ -7,14 +7,22 @@ import moment from "moment";
 import AxiosInstance from "../../../../API/api";
 import { AuthContext } from "../../../../Contexts/AuthContext";
 
+const { RangePicker } = DatePicker;
+
 const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
   const { user, userType } = useContext(AuthContext);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const shiftTime = window.location.pathname.includes("kitchen-am")
     ? "AM"
     : "PM";
+  const disabledDate = (current) => {
+    // disable all days with different name.
+    return current && current.format("dddd") !== date.format("dddd");
+  };
 
   const createEvent = async () => {
     setLoading(true);
@@ -24,25 +32,40 @@ const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
         : "Test User".split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
+      let result = {};
 
-      const { data } = await AxiosInstance.post("/events/createEvent", {
-        firstName,
-        lastName,
-        eventType: shiftTime === "AM" ? "kitam" : "kitpm",
-        userId: user.uid,
-        userType,
-        eventDate: date.format("YYMMDD"),
-        userComment: comment,
-        slot: 4,
-      });
-      if (data.success) {
+      if (isRecurring) {
+        result = await AxiosInstance.post("/events/recurringEvent", {
+          firstName,
+          lastName,
+          eventType: shiftTime === "AM" ? "kitam" : "kitpm",
+          userId: user.uid,
+          userType,
+          startDate: startDate.format("YYMMDD"),
+          endDate: endDate.format("YYMMDD"),
+          userComment: comment,
+          slot: 4, // we don't use this on the front end, but it's required on the backend so we just pass in 4 as a placeholder
+        });
+      } else {
+        result = await AxiosInstance.post("/events/createEvent", {
+          firstName,
+          lastName,
+          eventType: shiftTime === "AM" ? "kitam" : "kitpm",
+          userId: user.uid,
+          userType,
+          eventDate: date.format("YYMMDD"),
+          userComment: comment,
+          slot: 4,
+        });
+      }
+      if (result.data.success) {
         getEvents();
         setVisible((prev) => ({
           ...prev,
           volunteerCreateKitchenEventModalVisible: false,
         }));
       } else {
-        message.error(data.error);
+        message.error(result.data.error);
       }
     } catch (error) {
       console.log(error);
@@ -53,7 +76,11 @@ const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
 
   const Footer = () => (
     <Row justify="center">
-      <Button onClick={createEvent} loading={loading}>
+      <Button
+        onClick={createEvent}
+        loading={loading}
+        disabled={isRecurring && (!startDate || !endDate)}
+      >
         Confirm
       </Button>
     </Row>
@@ -101,10 +128,18 @@ const CreateKitchenEventModal = ({ visible, setVisible, date, getEvents }) => {
             marginTop: "10px",
           }}
         >
-          <p>
-            <strong>End Date: </strong>
-            <DatePicker />
-          </p>
+          <RangePicker
+            disabledDate={disabledDate}
+            onCalendarChange={(dates) => {
+              setStartDate(dates[0]);
+              setEndDate(dates[1]);
+            }}
+            onChange={(values) => {
+              setStartDate(values[0]);
+              setEndDate(values[1]);
+              console.log(values);
+            }}
+          />
         </div>
       )}
     </Modal>
@@ -115,6 +150,7 @@ CreateKitchenEventModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   setVisible: PropTypes.func.isRequired,
   date: PropTypes.object.isRequired,
+  getEvents: PropTypes.func.isRequired,
 };
 
 export default CreateKitchenEventModal;
