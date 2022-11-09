@@ -16,7 +16,7 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
-  const [startDate, setStartDate] = useState(null);
+  const [startDate, setStartDate] = useState(date);
   const [endDate, setEndDate] = useState(null);
 
   const disabledDate = (current) => {
@@ -153,6 +153,7 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
           }}
         >
           <RangePicker
+            value={[startDate, endDate]}
             disabledDate={disabledDate}
             onCalendarChange={(dates) => {
               setStartDate(dates[0]);

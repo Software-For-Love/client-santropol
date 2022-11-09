@@ -352,6 +352,7 @@ async function checkUserEventsLimit(userid, weekStartDate, endDate) {
     where("uid", "==", userid)
   );
   const results = await getDocs(q);
+  console.log(results.size)
   return results.size < WEEKLY_EVENT_LIMIT;
 }
 
@@ -577,7 +578,16 @@ eventRouter.post("/recurringEvent", async (req, res) => {
       startOfWeek,
       endOfWeek
     );
-    if (validUserEvent || userType != "volunteer") {
+    console.log(validUserEvent, dbDate);
+    if (!validUserEvent && userType === "volunteer") {
+      res.status(200).json({
+        success: false,
+        error: "User has volunteered for 3 events this week",
+      });
+      return;
+    }
+    else if (validUserEvent || userType != "volunteer") {
+      console.log("creating event for", dbDate);
       await setDoc(userEventRef, {
         uid: userId,
         event_date: parseInt(dbDate),
@@ -591,7 +601,7 @@ eventRouter.post("/recurringEvent", async (req, res) => {
         admin_comment: adminComment,
         recurring_event: true,
       });
-    }
+    } 
     startDate.add(7, "days");
   }
   res.status(200).json({
