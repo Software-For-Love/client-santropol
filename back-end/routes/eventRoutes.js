@@ -74,12 +74,10 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
       (event.data().event_date - getDateNumber(new Date()) < 2 ||
         req.body.uid != req.user.uid)
     ) {
-      res
-        .status(403)
-        .json({
-          success: false,
-          result: "Not allowed to remove, contact staff",
-        });
+      res.status(403).json({
+        success: false,
+        result: "Not allowed to remove, contact staff",
+      });
     } else {
       cancel_event = {
         event_id: event.id,
@@ -129,64 +127,60 @@ eventRouter.get("/getUserPastEvents", async (req, res) => {
   let q;
   //Checking if user is staff.  if volunteer, then that person ONLY accessing their own data
   if (
-    req.body.uid &&
-    (req.body.role == "staff" ||
-      req.body.role == "admin" ||
-      req.body.uid == req.user.uid)
+    req.query.uid &&
+    (req.query.role == "staff" ||
+      req.query.role == "admin" ||
+      req.query.uid == req.user.uid)
   ) {
     const db = getFirestore();
-    if (req.query.event_status == acceptedEventStates[1]) {
-      q = query(
-        collection(db, "user_cancelled_event"),
-        where("uid", "==", req.body.uid)
-      );
-      getDocsWrapper(q)
-        .then((results) =>
-          res.status(200).json({ result: results.map((val) => val.data()) })
-        )
-        .catch((err) => res.status(400).json({ success: false, result: err }));
-    } else if (req.query.event_status == acceptedEventStates[0]) {
-      q = query(
-        collection(db, "event"),
-        where(req.query.event_status, "==", true),
-        where("uid", "==", req.body.uid)
-      );
-      getDocsWrapper(q)
-        .then((results) =>
-          res.status(200).json({ result: results.map((val) => val.data()) })
-        )
-        .catch((err) => res.status(400).json({ success: false, result: err }));
-    }
+    // if (req.query.event_status == acceptedEventStates[1]) {
+    //   q = query(
+    //     collection(db, "user_cancelled_event"),
+    //     where("uid", "==", req.body.uid)
+    //   );
+    //   getDocsWrapper(q)
+    //     .then((results) =>
+    //       res.status(200).json({ result: results.map((val) => val.data()) })
+    //     )
+    //     .catch((err) => res.status(400).json({ success: false, result: err }));
+    // } else if (req.query.event_status == acceptedEventStates[0]) {
+    //   q = query(
+    //     collection(db, "event"),
+    //     where(req.query.event_status, "==", true),
+    //     where("uid", "==", req.body.uid)
+    //   );
+    //   getDocsWrapper(q)
+    //     .then((results) =>
+    //       res.status(200).json({ result: results.map((val) => val.data()) })
+    //     )
+    //     .catch((err) => res.status(400).json({ success: false, result: err }));
+    // }
     //If no query is supplied, give both cancelled and past events
-    else {
-      q = query(collection(db, "event"), where("uid", "==", req.body.uid));
-      let q2 = query(
-        collection(db, "user_cancelled_event"),
-        where("uid", "==", req.body.uid)
-      );
-      try {
-        let result1 = await getDocsWrapper(q);
-        let result2 = await getDocsWrapper(q2);
-        res
-          .status(200)
-          .json({
-            success: true,
-            result: {
-              ...result1.map((val) => val.data()),
-              ...result2.map((val) => val.data()),
-            },
-          });
-      } catch (err) {
-        res.status(400).json({ success: false, result: err });
-      }
-    }
-  } else {
-    res
-      .status(403)
-      .json({
-        success: false,
-        result: "Not authorized to get this user's data",
+    // else {
+    q = query(collection(db, "event"), where("uid", "==", req.query.uid));
+    let q2 = query(
+      collection(db, "user_cancelled_event"),
+      where("uid", "==", req.query.uid)
+    );
+    try {
+      let result1 = await getDocsWrapper(q);
+      let result2 = await getDocsWrapper(q2);
+      res.status(200).json({
+        success: true,
+        result: {
+          ...result1.map((val) => val.data()),
+          ...result2.map((val) => val.data()),
+        },
       });
+    } catch (err) {
+      res.status(400).json({ success: false, result: err });
+    }
+    //}
+  } else {
+    res.status(403).json({
+      success: false,
+      result: "Not authorized to get this user's data",
+    });
   }
 });
 
@@ -405,7 +399,7 @@ eventRouter.post("/createEvent", async (req, res) => {
   const eventType = req.body.eventType;
   const userId = req.body.userId;
   const slot = req.body.slot;
-  const adminComment = req.body.adminComment? req.body.adminComment: 'NA';
+  const adminComment = req.body.adminComment ? req.body.adminComment : "NA";
   const typeOfDelivery = req.body.typeOfDelivery
     ? req.body.typeOfDelivery
     : "NA";
@@ -443,7 +437,7 @@ eventRouter.post("/createEvent", async (req, res) => {
     key: userEventRef.id,
     user_comment: userComment,
     type_of_delivery: typeOfDelivery,
-    admin_comment: adminComment
+    admin_comment: adminComment,
   })
     .catch((err) => res.json({ success: false, result: err }))
     .then((writeResult) => {
@@ -481,7 +475,7 @@ eventRouter.post("/editEvent", async (req, res) => {
   const slot = req.body.slot;
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
   const userComment = req.body.userComment ? req.body.userComment : "";
-  const adminComment = req.body.adminComment? req.body.adminComment: 'NA';
+  const adminComment = req.body.adminComment ? req.body.adminComment : "NA";
   const typeOfDelivery = req.body.typeOfDelivery
     ? req.body.typeOfDelivery
     : "NA";
