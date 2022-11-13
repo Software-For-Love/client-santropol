@@ -6,34 +6,38 @@ import LeftArrowIcon from "../../assets/left-arrow.svg";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import AxiosInstance from "../../API/api";
+import VolunteerCard from "../../components/Card/VolunteerCard";
 
 const Search = () => {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [sendingData, setSendingData] = useState(false);
   const [data, setData] = useState(null);
 
-  console.log(data);
-
   const handleSearch = async () => {
-    // if (!name) {
-    //   message.error("Please enter a name");
-    //   return;
-    // }
-    const firstName = name.split(" ")[0];
-    const lastName = name.substring(firstName.length + 1);
+    if (firstName === "" && lastName === "") {
+      message.error("Please enter a name");
+      return;
+    }
 
-    console.log(firstName, lastName);
     setSendingData(true);
     try {
-      const response = await AxiosInstance.post("/user/retrieve-users", {
-        first_name: "Indigo ",
-        // last_name: lastName,
+      const { data } = await AxiosInstance.post("/user/retrieve-users", {
+        first_name: firstName,
+        last_name: lastName,
       });
-      if (response.data.length === 0) {
-        message.error("No results found");
+
+      console.log(firstName, lastName);
+      if (data.success) {
+        if (data.result.length === 0) {
+          message.error("No user found");
+          setData(null);
+        } else {
+          setData(data.result);
+        }
       } else {
-        setData(response.data);
+        message.error(data.error);
       }
     } catch (error) {
       console.log(error);
@@ -60,8 +64,14 @@ const Search = () => {
         <SearchContainer>
           <Typography.Text strong>Search:</Typography.Text>
           <StyledInput
-            value={name}
-            onChange={(event) => setName(event.target.value)}
+            placeholder="First Name"
+            value={firstName}
+            onChange={(event) => setFirstName(event.target.value)}
+          />
+          <StyledInput
+            placeholder="Last Name"
+            value={lastName}
+            onChange={(event) => setLastName(event.target.value)}
           />
           <Button
             rounded
@@ -76,10 +86,15 @@ const Search = () => {
           </Button>
         </SearchContainer>
         {data && data.length > 0 && (
-          <Row>
+          <Row
+            gutter={[16, 16]}
+            style={{
+              padding: "1rem",
+            }}
+          >
             {data.map((user) => (
               <Col span={8} key={user.uid}>
-                <Typography.Text>{user.first_name}</Typography.Text>
+                <VolunteerCard {...user} uid={user.key} />
               </Col>
             ))}
           </Row>
