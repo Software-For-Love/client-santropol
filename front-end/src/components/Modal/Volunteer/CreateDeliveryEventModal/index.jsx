@@ -32,6 +32,7 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
         eventType: "deliv",
         slot: 4,
         userId: user.uid,
+        adminComment: "Test Admin Comment",
         userType,
         eventDate: date.format("YYMMDD"),
         userComment: comment,

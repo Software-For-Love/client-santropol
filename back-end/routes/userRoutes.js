@@ -23,6 +23,99 @@ userRouter.post("/claim-user-admin", async (req, res) => {
   }
 });
 
+/** collect-users
+ * A script to migrate all firebase auth users to firestore users collection with First Name, Last Name, Email
+ * 
+ */
+userRouter.post("/collect-users", async (req, res) => {
+  try {
+    const uid = req.body.uid;
+    let userRecords = [];
+    await admin.auth().listUsers(5).then((listUsersResult) => {
+      listUsersResult.users.forEach((userRecord) => {
+        console.log('user', userRecord.toJSON());
+        userRecords.push(userRecord);
+
+        //check if we have the email in firestore -> haveEmailInUsersCollection? addUIDtoExistingUserDoc: createNewUserDocWithEmailAndId
+
+      });
+      userRecords.forEach((user)=>{
+        let 
+
+      })
+      
+      // res.json({ result: true });
+
+
+
+    }).catch((error) => {
+      console.log('Error listing users:', error);
+    });
+  } catch (error) {
+    console.error(error);
+    res.json({ result: false });
+  }
+});
+
+async function checkIfUserEmailExistsInUsers(email){
+
+  
+}
+/**
+ * @param: first_name
+ * @param: last_name
+ * @return: List of users who have that first name and last_name
+ * 
+ */
+userRouter.post("/retrieve-users", async (req, res) => {
+  try {
+    const first_name = req.body.first_name;
+    const last_name = req.body.last_name;
+    const db = getFirestore();
+
+    let firstNameQuery = null;
+    let lastNameQuery = null;
+    let usersWithFirstName = [];
+    let usersWithLastName  = [];
+    if(first_name){
+      firstNameQuery = query(
+        collection(db, "user"),
+        where("first_name", "==", first_name)
+      );
+      usersWithFirstName = await getDocsWrapper(firstNameQuery);
+    }
+    if(last_name){
+      lastNameQuery = query(
+        collection(db, "user"),
+        where("last_name", "==", last_name)
+      );
+      usersWithLastName = await getDocsWrapper(lastNameQuery);
+
+    }
+    
+    let result = [...new Set([...usersWithFirstName,...usersWithLastName])];
+    res.json({ success: true, result});
+
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, error });
+  }
+});
+
+function getDocsWrapper(query) {
+  return getDocs(query)
+    .then((querySnapshot) => {
+      let results = [];
+      querySnapshot.docs.forEach((doc) => {
+        results.push(doc.data());
+      });
+      return results;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+}
+
 userRouter.put("/update-user-info", async (req, res) => {
   try {
     const { phoneNumber, pronouns, name, email } = req.body;

@@ -39,9 +39,9 @@ initializeApp({
 firebase.initializeApp(firebaseConfig);
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cors({ origin: "*" }));
-app.use(verifyToken);
+// app.use(express.urlencoded({ extended: false }));
+// app.use(cors({ origin: "*" }));
+// app.use(verifyToken);
 
 app.use("/", indexRouter);
 app.use("/auth", authRouter);
