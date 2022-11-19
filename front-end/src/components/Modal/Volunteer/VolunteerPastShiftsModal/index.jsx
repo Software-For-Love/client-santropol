@@ -20,12 +20,12 @@ const VolunteerPastShiftsModal = ({ visible, setVisible, volunteer, data }) => {
       title={`Past Shifts for ${volunteer.first_name} ${volunteer.last_name}`}
     >
       {pastShifts && (
-        <Row>
-          <Col>
-            {pastShifts.map((shift) => (
+        <Row gutter={[8, 8]}>
+          {pastShifts.map((shift) => (
+            <Col span={12}>
               <PastShiftCard shift={shift} />
-            ))}
-          </Col>
+            </Col>
+          ))}
         </Row>
       )}
     </Modal>
