@@ -340,19 +340,28 @@ function getDBDateFromString(event_date) {
   return eventDate;
 }
 
-async function checkUserEventsLimit(userid, weekStartDate, endDate) {
+async function checkUserEventsLimit(userid, weekStart, weekEnd) {
   const db = getFirestore();
-  let weekStartDateNumber = getDateNumber(weekStartDate);
-  let weekEndDateNumber = getDateNumber(endDate);
+  let weekStartDateNumber = weekStart.format("YYMMDD");
+  let weekEndDateNumber = weekEnd.format("YYMMDD");
 
   const q = query(
     collection(db, "event"),
-    where("event_date", ">=", weekStartDateNumber),
-    where("event_date", "<", weekEndDateNumber),
+    where("event_date", ">=", parseInt(weekStartDateNumber)),
+    where("event_date", "<", parseInt(weekEndDateNumber)),
     where("uid", "==", userid)
   );
   const results = await getDocs(q);
-  console.log(results.size)
+  console.debug(`[Response From Firebase: checkUserEventsLimit]: 
+                                            params: {
+                                              userId: ${userid},
+                                              weekStartDate: ${weekStartDateNumber},
+                                              endDate: ${weekEndDateNumber},
+
+                                            },
+                                            response: {
+                                              ${results.toString()}
+                                            }`)
   return results.size < WEEKLY_EVENT_LIMIT;
 }
 
@@ -571,7 +580,7 @@ eventRouter.post("/recurringEvent", async (req, res) => {
     var userEventRef = doc(collection(db, "event"));
     var startOfWeek = getStartOfWeek(startDate);
     var endOfWeek = getStartOfWeek(startDate).add(6, "days");
-    let dbDate = startDate.format("YYMMDD"); //parseInt(getDateNumber(startDate));
+    let dbDate = startDate.format("YYMMDD"); 
 
     const validUserEvent = await checkUserEventsLimit(
       userId,
@@ -583,7 +592,9 @@ eventRouter.post("/recurringEvent", async (req, res) => {
                       valid: ${validUserEvent},
                       startOfWeek: ${startOfWeek.format("YYMMDD")},
                       endOfWeek: ${endOfWeek.format("YYMMDD")}
-                      eventType: ${eventType} 
+                      eventType: ${eventType},
+                      userId: ${userId},
+                      eventDate: ${dbDate}
                     }`);
     if (!validUserEvent && userType === "volunteer") {
       res.status(200).json({
