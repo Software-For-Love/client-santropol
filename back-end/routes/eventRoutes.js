@@ -72,7 +72,7 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
     //Can only remove as a volunteer if greater than 2 days away, staff/admin can remove anytime. Considered cancelled
     else if (
       req.body.role == "volunteer" &&
-      (event.data().event_date - getDateNumber(new Date()) < 2 ||
+      (event.data().event_date - getCurrentMomentInt() < 2 ||
         req.body.uid != req.user.uid)
     ) {
       res.status(403).json({
@@ -185,6 +185,18 @@ eventRouter.get("/getUserPastEvents", async (req, res) => {
   }
 });
 
+function getCurrentMomentInt() {
+  return parseInt(getCurrentMoment());
+}
+
+function getCurrentMoment() {
+  return getMoment(moment());
+}
+
+function getMoment(moment) {
+  return moment.format("YYMMDD");
+}
+
 function getDocsWrapper(query) {
   return getDocs(query)
     .then((querySnapshot) => {
@@ -212,18 +224,20 @@ eventRouter.get("/getWeeklyEventSlots", async (req, res) => {
   const db = getFirestore();
   let eventType = req.query.eventType ? req.query.eventType : "kitam";
   const today = req.query.eventDate;
+  
   let eventDate = null;
-  if (today.length == 6) {
-    year = today.substring(0, 2);
-    month = today.substring(2, 4);
-    day = today.substring(4, 6);
-    eventDate = moment(`20${year}-${month}-${day}`);
+  if (!today || today.length != 6) {
+    res.json({ success: false, result: "Invalid Date format provided" });
   }
+  year = today.substring(0, 2);
+  month = today.substring(2, 4);
+  day = today.substring(4, 6);
+  eventDate = moment(`20${year}-${month}-${day}`);
   if (!eventDate) {
     res.json({ success: false, result: "Invalid Date format provided" });
   }
   const oneWeekLater = eventDate.add(6, "days");
-  const oneWeekLaterFormatted = oneWeekLater.format("YYMMDD");
+  const oneWeekLaterFormatted = getMoment(oneWeekLater);
 
   const upperBound = parseInt(oneWeekLaterFormatted);
   const lowerBound = parseInt(today);
@@ -365,28 +379,6 @@ async function checkUserEventsLimit(userid, weekStart, weekEnd) {
   return results.size < WEEKLY_EVENT_LIMIT;
 }
 
-function getDateNumber(date) {
-  let month = "";
-  let day = "";
-  if (date.length == 6) {
-    return date;
-  }
-  date = moment(date);
-  if (date.month() + 1 < 10) {
-    month = "0" + (date.month() + 1).toString();
-  } else {
-    month = (date.month() + 1).toString();
-  }
-  if (date.day() < 10) {
-    day = "0" + date.day().toString();
-  } else {
-    day = date.day().toString();
-  }
-  let dateString = date.year().toString().substring(2, 4) + month + day;
-  let intDate = +dateString;
-  return intDate;
-}
-
 /**
  *  Request to create an Event for a user:
  * @description:
@@ -415,11 +407,11 @@ eventRouter.post("/createEvent", async (req, res) => {
     ? req.body.typeOfDelivery
     : "NA";
   const userType = req.body.userType ? req.body.userType : "admin";
-  const date = req.body.eventDate ? req.body.eventDate : Date.now();
+  const date = req.body.eventDate ? req.body.eventDate : moment().format("YYMMDD");
 
   const userComment = req.body.userComment ? req.body.userComment : "";
 
-  var dbDate = parseInt(getDateNumber(date));
+  var dbDate = parseInt(date);
 
   const startOfWeek = getStartOfWeek(date);
   const endOfWeek = getStartOfWeek(date).add(6, "days");
@@ -580,7 +572,7 @@ eventRouter.post("/recurringEvent", async (req, res) => {
     var userEventRef = doc(collection(db, "event"));
     var startOfWeek = getStartOfWeek(startDate);
     var endOfWeek = getStartOfWeek(startDate).add(6, "days");
-    let dbDate = startDate.format("YYMMDD"); 
+    let dbDate = startDate.format("YYMMDD");
 
     const validUserEvent = await checkUserEventsLimit(
       userId,
@@ -618,7 +610,7 @@ eventRouter.post("/recurringEvent", async (req, res) => {
         admin_comment: adminComment,
         recurring_event: true,
       });
-    } 
+    }
     startDate.add(7, "days");
   }
   res.status(200).json({
