@@ -555,11 +555,11 @@ eventRouter.post("/recurringEvent", async (req, res) => {
     ? req.body.typeOfDelivery
     : "NA";
   const userType = req.body.userType ? req.body.userType : "admin";
-  const startDate =
+  let startDate =
     req.body.startDate.length != 6
       ? moment(req.body.startDate)
       : getDBDateFromString(req.body.startDate);
-  const endDate =
+  let endDate =
     req.body.endDate.length != 6
       ? moment(req.body.endDate)
       : getDBDateFromString(req.body.endDate);
@@ -578,7 +578,13 @@ eventRouter.post("/recurringEvent", async (req, res) => {
       startOfWeek,
       endOfWeek
     );
-    console.log(validUserEvent, dbDate);
+    console.log(`[User Event Request]:
+                    { 
+                      valid: ${validUserEvent},
+                      startOfWeek: ${startOfWeek.format("YYMMDD")},
+                      endOfWeek: ${endOfWeek.format("YYMMDD")}
+                      eventType: ${eventType} 
+                    }`);
     if (!validUserEvent && userType === "volunteer") {
       res.status(200).json({
         success: false,
