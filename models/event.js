@@ -26,7 +26,6 @@ class Event {
 
   constructor(){
       this.event_date = "";
-      this.event_date_txt = "";
       this.event_time_end = "";
       this.event_time_start = "";
       this.event_type= "";
@@ -42,7 +41,29 @@ class Event {
       this.no_show = false;
       this.completed = false;
       this.cancelled = false;
+      this.recurring_event = false;
   }
+
+  constructor(req_body){
+    this.event_date = req_body.event_date ? req_body.event_date: "";
+    this.event_time_end = req_body.event_time_end ? req_body.event_time_end : "";
+    this.event_time_start = req_body.event_time_start ? req_body.event_time_start : "";
+    this.event_type = req_body.event_type ? req_body.event_type : "";
+    this.first_name = req_body.first_name ? req_body.first_name : "";
+    this.first_shift = req_body.first_shift ? req_body.first_shift : false;
+    this.is_current = req_body.is_current ? req_body.is_current : true;
+    this.is_important_event = req_body.is_important_event ? req_body.is_important_event : false;
+    this.key = req_body.key ? req_body.key : "";
+    this.last_name = req_body.last_name ? req_body.last_name : "";
+    this.note = req_body.note ? req_body.note : "";
+    this.slot = req_body.slot ? req_body.slot : "";
+    this.uid = req_body.uid ? req_body.uid : "";
+    this.no_show = req_body.no_show ? req_body.no_show : false;
+    this.completed = req_body.completed ? req_body.completed : false;
+    this.cancelled =  req_body.cancelled ? req_body.cancelled : false;
+    this.recurring_event = req_body.recurring_event ? req_body.recurring_event : false;
+  }
+
 
   set setCompleted(completed) {
     this.completed = completed;
@@ -52,9 +73,6 @@ class Event {
   }
   set setDate(event_date){
     this.event_date = event_date;
-  }
-  set setDateTxt(event_date_txt){
-    this.event_date_txt = event_date_txt;
   }
   set setTimeEnd(event_time_end){
     this.event_time_end = event_time_end ;
@@ -90,6 +108,9 @@ class Event {
     this.uid = uid;
   }
   
+  set recurringEvent(truth_val){
+    this.recurringEvent = truth_val;
+  }
 
   get getCompleted(){
     return this.completed;
@@ -99,9 +120,6 @@ class Event {
   }
   get getDate(){
     return this.event_date;
-  }
-  get getDateTxt(){
-    return this.event_date_txt;
   }
   get getTimeEnd(){
     return this.event_time_end;
@@ -136,7 +154,9 @@ class Event {
   get getUid(){
     return this.uid;
   }
-  
+  get recurringEvent(){
+    return this.recurringEvent;
+  }
 }
 
 
