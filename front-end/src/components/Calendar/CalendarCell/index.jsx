@@ -8,6 +8,8 @@ import {
   VolunteerUpdateKitchenEventModal,
   EmployeeUpdateDeliveryEventModal,
   EmployeeUpdateKitchenEventModal,
+  EmployeeCreateKitchenEventModal,
+  EmployeeCreateDeliveryEventModal,
   RemoveUserFromEventModal,
 } from "../../Modal";
 import { Typography, Tooltip, message } from "antd";
@@ -42,6 +44,8 @@ const CalendarCell = (props) => {
     volunteerUpdateDeliveryEventModalVisible: false,
     employeeUpdateDeliveryEventModalVisible: false,
     employeeUpdateKitchenEventModalVisible: false,
+    employeeCreateKitchenEventModalVisible: false,
+    employeeCreateDeliveryEventModalVisible: false,
     removeUserFromEventModalVisible: false,
   });
 
@@ -91,7 +95,17 @@ const CalendarCell = (props) => {
           });
         }
       } else {
-        message.error("No volunteer assigned to this shift.");
+        if (variant === "deliv") {
+          setModalVisibility({
+            ...modalVisibility,
+            employeeCreateDeliveryEventModalVisible: true,
+          });
+        } else {
+          setModalVisibility({
+            ...modalVisibility,
+            employeeCreateKitchenEventModalVisible: true,
+          });
+        }
       }
     }
   };
@@ -194,6 +208,18 @@ const CalendarCell = (props) => {
         getEvents={getEvents}
         eventInfo={eventInfo}
         volunteerInfo={volunteerInfo}
+      />
+      <EmployeeCreateKitchenEventModal
+        visible={modalVisibility.employeeCreateKitchenEventModalVisible}
+        setVisible={setModalVisibility}
+        date={date}
+        getEvents={getEvents}
+      />
+      <EmployeeCreateDeliveryEventModal
+        visible={modalVisibility.employeeCreateDeliveryEventModalVisible}
+        setVisible={setModalVisibility}
+        date={date}
+        getEvents={getEvents}
       />
       <RemoveUserFromEventModal
         visible={modalVisibility.removeUserFromEventModalVisible}

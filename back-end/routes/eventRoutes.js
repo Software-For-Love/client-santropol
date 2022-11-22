@@ -75,12 +75,10 @@ eventRouter.post("/removeUserFromEvent", async (req, res) => {
       (event.data().event_date - getDateNumber(new Date()) < 2 ||
         req.body.uid != req.user.uid)
     ) {
-      res
-        .status(403)
-        .json({
-          success: false,
-          result: "Not allowed to remove, contact staff",
-        });
+      res.status(403).json({
+        success: false,
+        result: "Not allowed to remove, contact staff",
+      });
     } else {
       cancel_event = {
         event_id: event.id,
@@ -130,64 +128,60 @@ eventRouter.get("/getUserPastEvents", async (req, res) => {
   let q;
   //Checking if user is staff.  if volunteer, then that person ONLY accessing their own data
   if (
-    req.body.uid &&
-    (req.body.role == "staff" ||
-      req.body.role == "admin" ||
-      req.body.uid == req.user.uid)
+    req.query.uid &&
+    (req.query.role == "staff" ||
+      req.query.role == "admin" ||
+      req.query.uid == req.user.uid)
   ) {
     const db = getFirestore();
-    if (req.query.event_status == acceptedEventStates[1]) {
-      q = query(
-        collection(db, "user_cancelled_event"),
-        where("uid", "==", req.body.uid)
-      );
-      getDocsWrapper(q)
-        .then((results) =>
-          res.status(200).json({ result: results.map((val) => val.data()) })
-        )
-        .catch((err) => res.status(400).json({ success: false, result: err }));
-    } else if (req.query.event_status == acceptedEventStates[0]) {
-      q = query(
-        collection(db, "event"),
-        where(req.query.event_status, "==", true),
-        where("uid", "==", req.body.uid)
-      );
-      getDocsWrapper(q)
-        .then((results) =>
-          res.status(200).json({ result: results.map((val) => val.data()) })
-        )
-        .catch((err) => res.status(400).json({ success: false, result: err }));
-    }
+    // if (req.query.event_status == acceptedEventStates[1]) {
+    //   q = query(
+    //     collection(db, "user_cancelled_event"),
+    //     where("uid", "==", req.body.uid)
+    //   );
+    //   getDocsWrapper(q)
+    //     .then((results) =>
+    //       res.status(200).json({ result: results.map((val) => val.data()) })
+    //     )
+    //     .catch((err) => res.status(400).json({ success: false, result: err }));
+    // } else if (req.query.event_status == acceptedEventStates[0]) {
+    //   q = query(
+    //     collection(db, "event"),
+    //     where(req.query.event_status, "==", true),
+    //     where("uid", "==", req.body.uid)
+    //   );
+    //   getDocsWrapper(q)
+    //     .then((results) =>
+    //       res.status(200).json({ result: results.map((val) => val.data()) })
+    //     )
+    //     .catch((err) => res.status(400).json({ success: false, result: err }));
+    // }
     //If no query is supplied, give both cancelled and past events
-    else {
-      q = query(collection(db, "event"), where("uid", "==", req.body.uid));
-      let q2 = query(
-        collection(db, "user_cancelled_event"),
-        where("uid", "==", req.body.uid)
-      );
-      try {
-        let result1 = await getDocsWrapper(q);
-        let result2 = await getDocsWrapper(q2);
-        res
-          .status(200)
-          .json({
-            success: true,
-            result: {
-              ...result1.map((val) => val.data()),
-              ...result2.map((val) => val.data()),
-            },
-          });
-      } catch (err) {
-        res.status(400).json({ success: false, result: err });
-      }
-    }
-  } else {
-    res
-      .status(403)
-      .json({
-        success: false,
-        result: "Not authorized to get this user's data",
+    // else {
+    q = query(collection(db, "event"), where("uid", "==", req.query.uid));
+    let q2 = query(
+      collection(db, "user_cancelled_event"),
+      where("uid", "==", req.query.uid)
+    );
+    try {
+      let result1 = await getDocsWrapper(q);
+      let result2 = await getDocsWrapper(q2);
+      res.status(200).json({
+        success: true,
+        result: {
+          ...result1.map((val) => val.data()),
+          ...result2.map((val) => val.data()),
+        },
       });
+    } catch (err) {
+      res.status(400).json({ success: false, result: err });
+    }
+    //}
+  } else {
+    res.status(403).json({
+      success: false,
+      result: "Not authorized to get this user's data",
+    });
   }
 });
 
@@ -406,7 +400,7 @@ eventRouter.post("/createEvent", async (req, res) => {
   const eventType = req.body.eventType;
   const userId = req.body.userId;
   const slot = req.body.slot;
-  const adminComment = req.body.adminComment? req.body.adminComment: 'NA';
+  const adminComment = req.body.adminComment ? req.body.adminComment : "NA";
   const typeOfDelivery = req.body.typeOfDelivery
     ? req.body.typeOfDelivery
     : "NA";
@@ -445,7 +439,7 @@ eventRouter.post("/createEvent", async (req, res) => {
     user_comment: userComment,
     type_of_delivery: typeOfDelivery,
     admin_comment: adminComment,
-    recurring_event: false
+    recurring_event: false,
   })
     .catch((err) => res.json({ success: false, result: err }))
     .then((writeResult) => {
@@ -483,7 +477,7 @@ eventRouter.post("/editEvent", async (req, res) => {
   const slot = req.body.slot;
   const date = req.body.eventDate ? req.body.eventDate : Date.now();
   const userComment = req.body.userComment ? req.body.userComment : "";
-  const adminComment = req.body.adminComment? req.body.adminComment: 'NA';
+  const adminComment = req.body.adminComment ? req.body.adminComment : "NA";
   const typeOfDelivery = req.body.typeOfDelivery
     ? req.body.typeOfDelivery
     : "NA";
@@ -548,35 +542,41 @@ eventRouter.post("/deleteEvent", async (req, res) => {
  * @param adminComment
  * @param typeOfDelivery
  */
-eventRouter.post("/recurringEvent", async (req,res)=> {
+eventRouter.post("/recurringEvent", async (req, res) => {
   const db = getFirestore();
   const firstName = req.body.firstName;
   const lastName = req.body.lastName;
   const eventType = req.body.eventType;
   const userId = req.body.userId;
   const slot = req.body.slot;
-  const adminComment = req.body.adminComment? req.body.adminComment: 'NA';
+  const adminComment = req.body.adminComment ? req.body.adminComment : "NA";
   const typeOfDelivery = req.body.typeOfDelivery
     ? req.body.typeOfDelivery
     : "NA";
   const userType = req.body.userType ? req.body.userType : "admin";
-  const startDate = req.body.startDate.length != 6 ? moment(req.body.startDate) : getDBDateFromString(req.body.startDate);
-  const endDate = req.body.endDate.length != 6 ? moment(req.body.endDate) : getDBDateFromString(req.body.endDate);
+  const startDate =
+    req.body.startDate.length != 6
+      ? moment(req.body.startDate)
+      : getDBDateFromString(req.body.startDate);
+  const endDate =
+    req.body.endDate.length != 6
+      ? moment(req.body.endDate)
+      : getDBDateFromString(req.body.endDate);
   const userComment = req.body.userComment ? req.body.userComment : "";
 
- //Need to determine number of weeks in advance as set by the end date
- //Need to create event
-  while(startDate <= endDate){
+  //Need to determine number of weeks in advance as set by the end date
+  //Need to create event
+  while (startDate <= endDate) {
     var userEventRef = doc(collection(db, "event"));
     var startOfWeek = getStartOfWeek(startDate);
     var endOfWeek = getStartOfWeek(startDate).add(6, "days");
-    let dbDate =  startDate.format("YYMMDD");  //parseInt(getDateNumber(startDate));
+    let dbDate = startDate.format("YYMMDD"); //parseInt(getDateNumber(startDate));
     const validUserEvent = await checkUserEventsLimit(
       userId,
       startOfWeek,
       endOfWeek
     );
-    if(validUserEvent || userType != "volunteer"){
+    if (validUserEvent || userType != "volunteer") {
       await setDoc(userEventRef, {
         uid: userId,
         event_date: dbDate,
@@ -588,11 +588,16 @@ eventRouter.post("/recurringEvent", async (req,res)=> {
         user_comment: userComment,
         type_of_delivery: typeOfDelivery,
         admin_comment: adminComment,
-        recurring_event: true
-      })
+        recurring_event: true,
+      });
     }
     startDate.add(7, "days");
   }
-  res.status(200).json({success: true, result: "Added events, please verify future events" })
-})
+  res
+    .status(200)
+    .json({
+      success: true,
+      result: "Added events, please verify future events",
+    });
+});
 module.exports = eventRouter;

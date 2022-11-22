@@ -71,7 +71,12 @@ const Profile = () => {
           onClick={() => navigate(-1)}
         />
       </Col>
-      <Col span={22}>
+      <Col
+        span={22}
+        style={{
+          borderRadius: "10px",
+        }}
+      >
         <StyledForm
           form={form}
           initialValues={{
