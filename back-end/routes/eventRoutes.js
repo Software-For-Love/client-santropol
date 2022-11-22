@@ -128,55 +128,55 @@ eventRouter.get("/getUserPastEvents", async (req, res) => {
   let q;
   //Checking if user is staff.  if volunteer, then that person ONLY accessing their own data
   if (
-    req.body.uid &&
-    (req.body.role == "staff" ||
-      req.body.role == "admin" ||
-      req.body.uid == req.user.uid)
+    req.query.uid &&
+    (req.query.role == "staff" ||
+      req.query.role == "admin" ||
+      req.query.uid == req.user.uid)
   ) {
     const db = getFirestore();
-    if (req.query.event_status == acceptedEventStates[1]) {
-      q = query(
-        collection(db, "user_cancelled_event"),
-        where("uid", "==", req.body.uid)
-      );
-      getDocsWrapper(q)
-        .then((results) =>
-          res.status(200).json({ result: results.map((val) => val.data()) })
-        )
-        .catch((err) => res.status(400).json({ success: false, result: err }));
-    } else if (req.query.event_status == acceptedEventStates[0]) {
-      q = query(
-        collection(db, "event"),
-        where(req.query.event_status, "==", true),
-        where("uid", "==", req.body.uid)
-      );
-      getDocsWrapper(q)
-        .then((results) =>
-          res.status(200).json({ result: results.map((val) => val.data()) })
-        )
-        .catch((err) => res.status(400).json({ success: false, result: err }));
-    }
+    // if (req.query.event_status == acceptedEventStates[1]) {
+    //   q = query(
+    //     collection(db, "user_cancelled_event"),
+    //     where("uid", "==", req.body.uid)
+    //   );
+    //   getDocsWrapper(q)
+    //     .then((results) =>
+    //       res.status(200).json({ result: results.map((val) => val.data()) })
+    //     )
+    //     .catch((err) => res.status(400).json({ success: false, result: err }));
+    // } else if (req.query.event_status == acceptedEventStates[0]) {
+    //   q = query(
+    //     collection(db, "event"),
+    //     where(req.query.event_status, "==", true),
+    //     where("uid", "==", req.body.uid)
+    //   );
+    //   getDocsWrapper(q)
+    //     .then((results) =>
+    //       res.status(200).json({ result: results.map((val) => val.data()) })
+    //     )
+    //     .catch((err) => res.status(400).json({ success: false, result: err }));
+    // }
     //If no query is supplied, give both cancelled and past events
-    else {
-      q = query(collection(db, "event"), where("uid", "==", req.body.uid));
-      let q2 = query(
-        collection(db, "user_cancelled_event"),
-        where("uid", "==", req.body.uid)
-      );
-      try {
-        let result1 = await getDocsWrapper(q);
-        let result2 = await getDocsWrapper(q2);
-        res.status(200).json({
-          success: true,
-          result: {
-            ...result1.map((val) => val.data()),
-            ...result2.map((val) => val.data()),
-          },
-        });
-      } catch (err) {
-        res.status(400).json({ success: false, result: err });
-      }
+    // else {
+    q = query(collection(db, "event"), where("uid", "==", req.query.uid));
+    let q2 = query(
+      collection(db, "user_cancelled_event"),
+      where("uid", "==", req.query.uid)
+    );
+    try {
+      let result1 = await getDocsWrapper(q);
+      let result2 = await getDocsWrapper(q2);
+      res.status(200).json({
+        success: true,
+        result: {
+          ...result1.map((val) => val.data()),
+          ...result2.map((val) => val.data()),
+        },
+      });
+    } catch (err) {
+      res.status(400).json({ success: false, result: err });
     }
+    //}
   } else {
     res.status(403).json({
       success: false,
@@ -224,7 +224,7 @@ eventRouter.get("/getWeeklyEventSlots", async (req, res) => {
   const db = getFirestore();
   let eventType = req.query.eventType ? req.query.eventType : "kitam";
   const today = req.query.eventDate;
-  
+
   let eventDate = null;
   if (!today || today.length != 6) {
     res.json({ success: false, result: "Invalid Date format provided" });
@@ -375,7 +375,7 @@ async function checkUserEventsLimit(userid, weekStart, weekEnd) {
                                             },
                                             response: {
                                               ${results.toString()}
-                                            }`)
+                                            }`);
   return results.size < WEEKLY_EVENT_LIMIT;
 }
 
@@ -407,7 +407,9 @@ eventRouter.post("/createEvent", async (req, res) => {
     ? req.body.typeOfDelivery
     : "NA";
   const userType = req.body.userType ? req.body.userType : "admin";
-  const date = req.body.eventDate ? req.body.eventDate : moment().format("YYMMDD");
+  const date = req.body.eventDate
+    ? req.body.eventDate
+    : moment().format("YYMMDD");
 
   const userComment = req.body.userComment ? req.body.userComment : "";
 
@@ -556,11 +558,11 @@ eventRouter.post("/recurringEvent", async (req, res) => {
     ? req.body.typeOfDelivery
     : "NA";
   const userType = req.body.userType ? req.body.userType : "admin";
-  let startDate =
+  const startDate =
     req.body.startDate.length != 6
       ? moment(req.body.startDate)
       : getDBDateFromString(req.body.startDate);
-  let endDate =
+  const endDate =
     req.body.endDate.length != 6
       ? moment(req.body.endDate)
       : getDBDateFromString(req.body.endDate);
@@ -572,30 +574,20 @@ eventRouter.post("/recurringEvent", async (req, res) => {
     var userEventRef = doc(collection(db, "event"));
     var startOfWeek = getStartOfWeek(startDate);
     var endOfWeek = getStartOfWeek(startDate).add(6, "days");
-    let dbDate = startDate.format("YYMMDD");
-
+    let dbDate = startDate.format("YYMMDD"); //parseInt(getDateNumber(startDate));
     const validUserEvent = await checkUserEventsLimit(
       userId,
       startOfWeek,
       endOfWeek
     );
-    console.log(`[User Event Request]:
-                    { 
-                      valid: ${validUserEvent},
-                      startOfWeek: ${startOfWeek.format("YYMMDD")},
-                      endOfWeek: ${endOfWeek.format("YYMMDD")}
-                      eventType: ${eventType},
-                      userId: ${userId},
-                      eventDate: ${dbDate}
-                    }`);
+
     if (!validUserEvent && userType === "volunteer") {
       res.status(200).json({
         success: false,
         error: "User has volunteered for 3 events this week",
       });
       return;
-    }
-    else if (validUserEvent || userType != "volunteer") {
+    } else if (validUserEvent || userType != "volunteer") {
       console.log("creating event for", dbDate);
       await setDoc(userEventRef, {
         uid: userId,
