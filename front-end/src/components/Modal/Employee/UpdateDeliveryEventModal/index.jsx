@@ -119,7 +119,7 @@ const UpdateDeliveryEventModal = ({
       />
       <b>Employee Comment:</b>
       <CommentTextArea
-        value={employeeComment}
+        value={employeeComment === "NA" ? "" : employeeComment}
         onChange={(event) => setEmployeeComment(event.target.value)}
       />
       {/* <Checkbox
