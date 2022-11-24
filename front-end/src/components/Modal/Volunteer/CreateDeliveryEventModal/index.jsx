@@ -1,6 +1,6 @@
 import { useState, useContext } from "react";
 import PropTypes from "prop-types";
-import { Row, Radio, message } from "antd";
+import { Row, Radio, message, DatePicker, Checkbox } from "antd";
 import Button from "../../../Button";
 import Modal, { CommentTextArea } from "../../styles";
 import { DELIVERY_TYPES } from "../../../../constants";
@@ -8,11 +8,21 @@ import moment from "moment";
 import AxiosInstance from "../../../../API/api";
 import { AuthContext } from "../../../../Contexts/AuthContext";
 
+const { RangePicker } = DatePicker;
+
 const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
   const { user, userType } = useContext(AuthContext);
   const [value, setValue] = useState("Foot");
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [startDate, setStartDate] = useState(date);
+  const [endDate, setEndDate] = useState(null);
+
+  const disabledDate = (current) => {
+    // disable all days with different name.
+    return current && current.format("dddd") !== date.format("dddd");
+  };
 
   const onTypeOfDeliveryChange = (e) => {
     setValue(e.target.value);
@@ -26,25 +36,43 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
         : "Test User".split(" ");
       const firstName = userNameArray.slice(0, -1).join(" ");
       const lastName = userNameArray[userNameArray.length - 1];
-      const { data } = await AxiosInstance.post("/events/createEvent", {
-        firstName,
-        lastName,
-        eventType: "deliv",
-        slot: 4,
-        userId: user.uid,
-        userType,
-        eventDate: date.format("YYMMDD"),
-        userComment: comment,
-        typeOfDelivery: value,
-      });
-      if (data.success) {
+      let result = {};
+
+      if (isRecurring) {
+        result = await AxiosInstance.post("/events/recurringEvent", {
+          firstName,
+          lastName,
+          eventType: "deliv",
+          userId: user.uid,
+          userType,
+          startDate: startDate.format("YYMMDD"),
+          endDate: endDate.format("YYMMDD"),
+          userComment: comment,
+          typeOfDelivery: value,
+          slot: 4, // we don't use this on the front end, but it's required on the backend so we just pass in 4 as a placeholder
+        });
+      } else {
+        result = await AxiosInstance.post("/events/createEvent", {
+          firstName,
+          lastName,
+          eventType: "deliv",
+          slot: 4,
+          userId: user.uid,
+          userType,
+          eventDate: date.format("YYMMDD"),
+          userComment: comment,
+          typeOfDelivery: value,
+        });
+      }
+
+      if (result.data.success) {
         getEvents();
         setVisible((prev) => ({
           ...prev,
           volunteerCreateDeliveryEventModalVisible: false,
         }));
       } else {
-        message.error(data.error);
+        message.error(result.data.error);
       }
     } catch (error) {
       console.log(error);
@@ -55,7 +83,12 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
 
   const Footer = () => (
     <Row justify="center">
-      <Button type="primary" onClick={createEvent} loading={loading}>
+      <Button
+        type="primary"
+        onClick={createEvent}
+        loading={loading}
+        disabled={isRecurring && (!startDate || !endDate)}
+      >
         Confirm
       </Button>
     </Row>
@@ -107,6 +140,33 @@ const CreateDeliveryEventModal = ({ visible, setVisible, date, getEvents }) => {
         value={comment}
         onChange={(event) => setComment(event.target.value)}
       />
+      <Checkbox
+        onChange={() => setIsRecurring(!isRecurring)}
+        checked={isRecurring}
+      >
+        This is a recurring event
+      </Checkbox>
+      {isRecurring && (
+        <div
+          style={{
+            marginTop: "10px",
+          }}
+        >
+          <RangePicker
+            value={[startDate, endDate]}
+            disabledDate={disabledDate}
+            onCalendarChange={(dates) => {
+              setStartDate(dates[0]);
+              setEndDate(dates[1]);
+            }}
+            onChange={(values) => {
+              setStartDate(values[0]);
+              setEndDate(values[1]);
+              console.log(values);
+            }}
+          />
+        </div>
+      )}
     </Modal>
   );
 };

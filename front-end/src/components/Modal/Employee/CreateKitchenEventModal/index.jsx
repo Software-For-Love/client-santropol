@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { message, Row, Col } from "antd";
+import { message, Row, Col, DatePicker, Checkbox } from "antd";
 import Button from "../../../Button";
 import Modal, { CommentTextArea } from "../../styles";
 import moment from "moment";
 import AxiosInstance from "../../../../API/api";
 import SelectVolunteerCard from "../../../Card/SelectVolunteerCard";
+
+const { RangePicker } = DatePicker;
 
 const AdminCreateKitchenEventModal = ({
   visible,
@@ -18,11 +20,19 @@ const AdminCreateKitchenEventModal = ({
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [startDate, setStartDate] = useState(date);
+  const [endDate, setEndDate] = useState(null);
   const [users, setUsers] = useState(null);
   const [searchingUsers, setSearchingUsers] = useState(false);
   const shiftTime = window.location.pathname.includes("kitchen-am")
     ? "AM"
     : "PM";
+
+  const disabledDate = (current) => {
+    // disable all days with different name.
+    return current && current.format("dddd") !== date.format("dddd");
+  };
 
   const handleSearch = async () => {
     if (firstName === "" && lastName === "") {
@@ -37,7 +47,6 @@ const AdminCreateKitchenEventModal = ({
         last_name: lastName,
       });
 
-      console.log(firstName, lastName);
       if (data.success) {
         if (data.result.length === 0) {
           message.error("No user found");
@@ -57,24 +66,40 @@ const AdminCreateKitchenEventModal = ({
   const createEvent = async () => {
     setLoading(true);
     try {
-      const { data } = await AxiosInstance.post("/events/createEvent", {
-        firstName: selectedUser.first_name,
-        lastName: selectedUser.last_name,
-        eventType: shiftTime === "AM" ? "kitam" : "kitpm",
-        userId: selectedUser.key,
-        userType: "volunteer",
-        eventDate: date.format("YYMMDD"),
-        adminComment: comment,
-        slot: 4,
-      });
-      if (data.success) {
+      let result = {};
+      if (isRecurring) {
+        result = await AxiosInstance.post("/events/recurringEvent", {
+          firstName: selectedUser.first_name,
+          lastName: selectedUser.last_name,
+          eventType: shiftTime === "AM" ? "kitam" : "kitpm",
+          slot: 4,
+          userId: selectedUser.key,
+          userType: "volunteer",
+          startDate: startDate.format("YYMMDD"),
+          endDate: endDate.format("YYMMDD"),
+          adminComment: comment,
+        });
+      } else {
+        result = await AxiosInstance.post("/events/createEvent", {
+          firstName: selectedUser.first_name,
+          lastName: selectedUser.last_name,
+          eventType: shiftTime === "AM" ? "kitam" : "kitpm",
+          userId: selectedUser.key,
+          userType: "volunteer",
+          eventDate: date.format("YYMMDD"),
+          adminComment: comment,
+          slot: 4,
+        });
+      }
+
+      if (result.data.success) {
         getEvents();
         setVisible((prev) => ({
           ...prev,
           employeeCreateKitchenEventModalVisible: false,
         }));
       } else {
-        message.error(data.error);
+        message.error(result.data.error);
       }
     } catch (error) {
       console.log(error);
@@ -170,6 +195,33 @@ const AdminCreateKitchenEventModal = ({
         value={comment}
         onChange={(event) => setComment(event.target.value)}
       />
+      <Checkbox
+        onChange={() => setIsRecurring(!isRecurring)}
+        checked={isRecurring}
+      >
+        This is a recurring event
+      </Checkbox>
+      {isRecurring && (
+        <div
+          style={{
+            marginTop: "10px",
+          }}
+        >
+          <RangePicker
+            value={[startDate, endDate]}
+            disabledDate={disabledDate}
+            onCalendarChange={(dates) => {
+              setStartDate(dates[0]);
+              setEndDate(dates[1]);
+            }}
+            onChange={(values) => {
+              setStartDate(values[0]);
+              setEndDate(values[1]);
+              console.log(values);
+            }}
+          />
+        </div>
+      )}
     </Modal>
   );
 };
